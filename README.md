@@ -77,30 +77,20 @@ Sistem gamifikasi yang membuat petani semangat berkontribusi:
 
 ## 🛠️ Tech Stack
 
-```
-┌─────────────────────────────────────────────────────┐
-│                    FRONTEND                         │
-├─────────────────────────────────────────────────────┤
-│  HTML5 + Vanilla JS        Ringan & blazing fast    │
-│  Vanilla CSS3              Custom design system     │
-│  Vite                      Build tool + HMR         │
-│  Chart.js                  Visualisasi data         │
-│  vite-plugin-pwa           Service Worker & Manifest│
-├─────────────────────────────────────────────────────┤
-│                    BACKEND                          │
-├─────────────────────────────────────────────────────┤
-│  Supabase                  PostgreSQL + Realtime    │
-│  Supabase Edge Functions   Serverless API (Deno)    │
-│  Google Gemini API         AI/ML Engine             │
-│  ScraperAPI                Data proxy (BI PIHPS)    │
-├─────────────────────────────────────────────────────┤
-│                  DEPLOYMENT                         │
-├─────────────────────────────────────────────────────┤
-│  Vercel                    Hosting & CI/CD          │
-│  PWABuilder                Android APK packaging    │
-│  GitHub Releases           APK distribution         │
-└─────────────────────────────────────────────────────┘
-```
+| Teknologi | Kategori | Kegunaan Utama |
+|-----------|----------|----------------|
+| **HTML5 + Vanilla JS** | Frontend | Pondasi super ringan & *blazing fast* |
+| **Vanilla CSS3** | Frontend | *Custom design system* tanpa *framework* berat |
+| **Vite** | Frontend | *Build tool* + HMR (Hot Module Replacement) |
+| **Chart.js** | Frontend | Visualisasi grafik data yang interaktif |
+| **vite-plugin-pwa** | Frontend | *Service Worker* & PWA *Manifest* |
+| **Supabase (PostgreSQL)** | Backend | Database & sinkronisasi data *realtime* |
+| **Supabase Edge Functions**| Backend | *Serverless API* (menggunakan Deno) |
+| **Google Gemini API** | AI Engine | Model dasar untuk asisten pertanian AI |
+| **ScraperAPI** | Integrasi | Proxy pengambil data dari web BI PIHPS |
+| **Vercel** | Deployment | *Hosting* web & CI/CD otomatis |
+| **PWABuilder** | Deployment | Generator *Android APK packaging* |
+| **GitHub Releases** | Deployment | Platform distribusi file `.apk` |
 
 ---
 
