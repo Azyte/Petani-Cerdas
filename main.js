@@ -1,5 +1,5 @@
 import './style.css';
-import { fetchProvinces, fetchCities, fetchCommodities, fetchReferencePrices, fetchCrowdsourcedPrices, submitPriceReport, formatRupiah, priceTypeLabel } from './src/data.js';
+import { fetchProvinces, fetchCities, fetchCommodities, fetchReferencePrices, fetchCrowdsourcedPrices, submitPriceReport, fetchMarketplaceListings, submitMarketplaceListing, formatRupiah, priceTypeLabel } from './src/data.js';
 import { sendMessage, buildContext } from './src/chat.js';
 import { registerSW } from 'virtual:pwa-register';
 import { queueReport, getPendingReports, removeFromQueue, cacheData, getCachedData, isOnline, onConnectivityChange } from './src/offline.js';
@@ -717,19 +717,34 @@ async function handleReportSubmit(e) {
 // MARKETPLACE — Listing CRUD (localStorage)
 // =============================================
 
-function renderMarketplace() {
+async function renderMarketplace() {
   if (!dom.marketplaceGrid) return;
-  var listings = state.listings;
   
-  if (listings.length === 0) {
-    dom.marketplaceGrid.innerHTML = '<div class="marketplace-empty"><div class="marketplace-empty-icon">\ud83c\udfea</div><h3>Belum Ada Listing</h3><p>Jadilah yang pertama memasang komoditas Anda di pasar digital!</p></div>';
+  dom.marketplaceGrid.innerHTML = '<div class="marketplace-empty"><div class="pulse-ring" style="position:relative; width:40px; height:40px; margin: 0 auto; border-color:var(--emerald-500)"></div><p class="mt-4">Memuat pasar...</p></div>';
+  
+  let listings = [];
+  try {
+    if (isOnline()) {
+      listings = await fetchMarketplaceListings();
+      // Cache the listings just in case
+      cacheData('cached_b2b_market', listings);
+    } else {
+      listings = await getCachedData('cached_b2b_market') || state.listings;
+    }
+  } catch (err) {
+    console.error("Gagal memuat pasar:", err);
+    listings = state.listings; // fallback to local state
+  }
+  
+  if (!listings || listings.length === 0) {
+    dom.marketplaceGrid.innerHTML = '<div class="marketplace-empty"><div class="marketplace-empty-icon">🏪</div><h3>Belum Ada Listing</h3><p>Jadilah yang pertama memasang komoditas Anda di pasar digital!</p></div>';
     return;
   }
 
   dom.marketplaceGrid.innerHTML = listings.map(function(item, idx) {
     var statusLabel = item.status === 'ready' ? 'Siap Panen' : 'Tersedia';
     var statusClass = item.status === 'ready' ? 'ready' : 'available';
-    return '<div class="listing-card">' +
+    return '<div class="listing-card interactive-el">' +
       '<div class="listing-header"><span class="listing-commodity">' + item.commodity + '</span><span class="listing-status-badge ' + statusClass + '">' + statusLabel + '</span></div>' +
       '<div class="listing-price">' + formatRupiah(item.price) + '/kg</div>' +
       '<div class="listing-detail">' +
@@ -737,33 +752,59 @@ function renderMarketplace() {
         '<div class="listing-detail-row"><span>Lokasi</span><strong>' + item.location + '</strong></div>' +
       '</div>' +
       '<div class="listing-footer">' +
-        '<button class="btn-contact" onclick="window.open(\'https://wa.me/' + item.contact.replace(/^0/,'62') + '\',\'_blank\')">Hubungi via WA</button>' +
+        '<button class="btn-contact interactive-el" onclick="window.open(\'https://wa.me/' + item.contact.replace(/^0/,'62') + '\',\'_blank\')">Hubungi via WA</button>' +
       '</div>' +
     '</div>';
   }).join('');
+  
+  // Re-init ripples for new elements
+  initRipples();
 }
 
-function handleListingSubmit(e) {
+async function handleListingSubmit(e) {
   e.preventDefault();
+  
+  var submitBtn = dom.listingForm.querySelector('button[type="submit"]');
+  var originalBtnText = submitBtn.textContent;
+  submitBtn.textContent = 'Memproses...';
+  submitBtn.disabled = true;
+
   var newListing = {
-    id: Date.now(),
     commodity: document.getElementById('listing-commodity').value,
     qty: parseInt(document.getElementById('listing-qty').value),
     price: parseInt(document.getElementById('listing-price').value),
     location: document.getElementById('listing-location').value,
     contact: document.getElementById('listing-contact').value,
-    status: document.getElementById('listing-status').value,
-    createdAt: new Date().toISOString()
+    status: document.getElementById('listing-status').value
   };
   
-  state.listings.push(newListing);
-  localStorage.setItem('tc_listings', JSON.stringify(state.listings));
-  
-  addPoints(5, 'listing');
-  
-  dom.listingModal.classList.add('hidden');
-  dom.listingForm.reset();
-  renderMarketplace();
+  try {
+    if (isOnline()) {
+      await submitMarketplaceListing(newListing);
+    } else {
+      // Fallback local state if offline
+      newListing.id = Date.now();
+      state.listings.push(newListing);
+      localStorage.setItem('tc_listings', JSON.stringify(state.listings));
+      alert('Anda sedang offline. Listing disimpan lokal.');
+    }
+    
+    addPoints(15, 'listing');
+    
+    dom.listingModal.classList.add('hidden');
+    dom.listingForm.reset();
+    renderMarketplace();
+    
+    // Add success toast/alert
+    if (isOnline()) alert("✅ Lapak berhasil tayang di Pasar B2B secara Global!");
+    
+  } catch (error) {
+    console.error("Gagal submit listing:", error);
+    alert("Gagal memposting lapak. Coba lagi.");
+  } finally {
+    submitBtn.textContent = originalBtnText;
+    submitBtn.disabled = false;
+  }
 }
 
 // =============================================

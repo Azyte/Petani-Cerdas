@@ -138,6 +138,67 @@ export async function submitPriceReport({
 }
 
 /**
+ * Fetch B2B Marketplace Listings from Supabase (using crowdsourced_prices table as a hack)
+ */
+export async function fetchMarketplaceListings() {
+  const { data, error } = await supabase
+    .from('tani_crowdsourced_prices')
+    .select('*')
+    .eq('buyer_type', 'B2B_LISTING')
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    console.error('Error fetching marketplace:', error);
+    return [];
+  }
+
+  // Parse notes JSON back to listing objects
+  return data.map(item => {
+    try {
+      const details = JSON.parse(item.notes);
+      return {
+        id: item.id,
+        commodity: details.commodity || 'Komoditas',
+        qty: details.qty || 0,
+        price: item.reported_price,
+        location: details.location || 'Indonesia',
+        contact: item.reporter_name || '',
+        status: details.status || 'available',
+        timestamp: item.created_at
+      };
+    } catch (e) {
+      return null;
+    }
+  }).filter(Boolean);
+}
+
+/**
+ * Submit B2B Marketplace Listing to Supabase
+ */
+export async function submitMarketplaceListing(listing) {
+  // Use commodity_id 1 and province_id 31 as dummies to bypass constraints
+  const { data, error } = await supabase
+    .from('tani_crowdsourced_prices')
+    .insert({
+      commodity_id: 1, 
+      province_id: 31,
+      reported_price: listing.price,
+      buyer_type: 'B2B_LISTING',
+      reporter_name: listing.contact,
+      notes: JSON.stringify({
+        commodity: listing.commodity,
+        qty: listing.qty,
+        location: listing.location,
+        status: listing.status
+      })
+    });
+
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Format currency to Indonesian Rupiah
  */
 export function formatRupiah(amount) {
