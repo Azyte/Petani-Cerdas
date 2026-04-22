@@ -962,4 +962,39 @@ function handleSettingsSave() {
   }
 }
 
+// =============================================
+// RIPPLE EFFECT LOGIC
+// =============================================
+function createRipple(event) {
+  const button = event.currentTarget;
+  const circle = document.createElement("span");
+  const diameter = Math.max(button.clientWidth, button.clientHeight);
+  const radius = diameter / 2;
+
+  const rect = button.getBoundingClientRect();
+  circle.style.width = circle.style.height = `${diameter}px`;
+  circle.style.left = `${event.clientX - rect.left - radius}px`;
+  circle.style.top = `${event.clientY - rect.top - radius}px`;
+  circle.classList.add("ripple");
+
+  const ripple = button.getElementsByClassName("ripple")[0];
+  if (ripple) { ripple.remove(); }
+  button.appendChild(circle);
+}
+
+function initRipples() {
+  const buttons = document.querySelectorAll('.btn-emerald, .btn-ghost, .nav-item, .listing-card, .btn-contact');
+  buttons.forEach(btn => {
+    btn.classList.add('interactive-el');
+    btn.addEventListener('click', createRipple);
+  });
+}
+
+// Override Init
+const originalInit = init;
+init = async function() {
+  await originalInit();
+  initRipples();
+}
+
 document.addEventListener('DOMContentLoaded', init);
