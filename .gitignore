@@ -12,16 +12,49 @@ dist
 dist-ssr
 *.local
 
-# Local env files
+# ==============================
+# ENVIRONMENT & SECRETS
+# ==============================
 .env
+.env.*
 .env.local
 .env.*.local
 
-# Editor directories and files
+# ==============================
+# SIGNING KEYS & CERTIFICATES
+# ==============================
+*.keystore
+*.jks
+*.pem
+*.key
+*.p12
+*.pfx
+signing-key-info.txt
+signing*.json
+
+# ==============================
+# APK / AAB BUILD ARTIFACTS
+# ==============================
+*.apk
+*.aab
+apk/
+temp_apk/
+
+# ==============================
+# ANDROID BUILD CACHE
+# ==============================
+.gradle/
+build/
+local.properties
+
+# ==============================
+# EDITOR & OS FILES
+# ==============================
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj

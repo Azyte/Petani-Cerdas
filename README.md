@@ -1,105 +1,228 @@
 <div align="center">
   <img src="./public/assets/icon-512.png" alt="TaniCerdas Logo" width="150"/>
   <h1>🌾 TaniCerdas AI</h1>
-  <p><strong>Dashboard Intelijen Harga & Tren Pasar Agritech</strong></p>
+  <p><strong>Platform Intelijen Harga Komoditas & Pasar Digital B2B untuk Petani Indonesia</strong></p>
+  <p><em>Melawan manipulasi harga tengkulak dengan transparansi data dan kecerdasan buatan.</em></p>
 
   <p>
-    <a href="#-fitur-unggulan">Fitur Unggulan</a> •
-    <a href="#%EF%B8%8F-teknologi-yang-digunakan">Teknologi</a> •
-    <a href="#-panduan-instalasi">Panduan Instalasi</a> •
-    <a href="#-arsitektur-sistem">Arsitektur Sistem</a>
+    <a href="https://petani-cerdas.vercel.app"><img src="https://img.shields.io/badge/🌐_Live_Demo-petani--cerdas.vercel.app-064e3b?style=for-the-badge" alt="Live Demo" /></a>
+    <a href="https://github.com/Azyte/Petani-Cerdas/releases/latest"><img src="https://img.shields.io/badge/📱_Download-APK_Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status" />
-    <img src="https://img.shields.io/badge/PWA-Supported-blue?style=for-the-badge" alt="PWA" />
-    <img src="https://img.shields.io/badge/AI-Gemini_Powered-orange?style=for-the-badge" alt="AI Powered" />
+    <img src="https://img.shields.io/badge/Status-Production_Ready-10b981?style=flat-square" alt="Status" />
+    <img src="https://img.shields.io/badge/PWA-Offline_Ready-5A0FC8?style=flat-square&logo=pwa&logoColor=white" alt="PWA" />
+    <img src="https://img.shields.io/badge/AI-Gemini_Powered-4285F4?style=flat-square&logo=google&logoColor=white" alt="AI" />
+    <img src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
+    <img src="https://img.shields.io/badge/Build-Vite-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+    <img src="https://img.shields.io/badge/Bahasa-Indonesia-red?style=flat-square" alt="Bahasa" />
   </p>
 </div>
 
 ---
 
-## 📖 Tentang Proyek
+## 📖 Apa Itu TaniCerdas?
 
-**TaniCerdas AI** adalah sebuah platform aplikasi *Mobile-First Progressive Web App (PWA)* yang dirancang untuk membantu para petani memantau harga acuan pasar, melihat tren komoditas, dan melawan permainan harga dari tengkulak. Aplikasi ini dilengkapi dengan **Kecerdasan Buatan (AI)** yang dapat memberikan saran dan strategi penjualan komoditas secara *real-time*.
+**TaniCerdas AI** adalah platform agritech *open-source* berbasis web yang didesain khusus untuk **petani Indonesia**. Platform ini menyediakan akses transparan ke data harga komoditas resmi dari **Bank Indonesia (BI PIHPS)**, pasar digital B2B untuk jual-beli hasil tani, dan asisten AI cerdas — semuanya dikemas dalam satu aplikasi ringan yang bisa diakses lewat browser maupun diinstall sebagai aplikasi Android.
 
-Platform ini dirancang dengan antarmuka yang sangat premium (Glassmorphism UI), responsif penuh untuk *smartphone*, dan didukung arsitektur *backend* yang tangguh.
+### 🎯 Mengapa TaniCerdas Dibutuhkan?
 
----
+> *"Di Indonesia, jutaan petani masih menjual hasil panen mereka dengan harga yang ditentukan sepihak oleh tengkulak. Tanpa akses informasi harga pasar yang transparan, petani kehilangan potensi pendapatan hingga 30-40%."*
 
-## ✨ Fitur Unggulan
-
-- 🤖 **Analisis AI Tani (Gemini AI):** Memberikan rekomendasi strategis apakah harga saat ini tergolong *Harga Wajar*, *Perlu Negosiasi*, atau *Tidak Wajar*.
-- 📊 **Visualisasi Tren Pasar:** Menampilkan pergerakan grafik harga historis komoditas (*crowdsourced*) menggunakan Chart.js yang memanjakan mata.
-- 📱 **Progressive Web App (PWA):** Dapat diunduh (*install*) langsung ke *Home Screen Smartphone* tanpa melalui Play Store, dengan dukungan *Offline Mode* dasar.
-- 📡 **Bypass Sinkronisasi Data:** Terintegrasi dengan mekanisme *Proxy Scraper* untuk menarik data otentik dari Bank Indonesia / Badan Pangan Nasional secara aman.
-- 🤝 **Crowdsource Pelaporan Harga:** Memungkinkan pengguna (petani) melaporkan penawaran harga langsung dari lapangan untuk membantu petani lainnya.
-- 🎨 **Premium UI/UX:** Antarmuka dengan sistem tata letak modern bergaya *Glassmorphism* dan palet *Emerald Green* khas agrikultur.
+TaniCerdas hadir untuk **menutup kesenjangan informasi** ini dengan memberikan petani:
+- ✅ Data harga resmi langsung dari sumber pemerintah
+- ✅ Platform jual-beli digital tanpa perantara
+- ✅ Asisten AI yang membantu strategi penjualan
+- ✅ Komunitas sesama petani untuk saling berbagi informasi
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## ✨ Fitur Lengkap
 
-### Frontend
-- **HTML5 & Vanilla JS** (Sangat ringan dan cepat)
-- **Vanilla CSS3** (Tanpa *framework* berat, murni *custom design system*)
-- **Vite** (Build Tool & PWA Plugin)
-- **Chart.js** (Visualisasi data grafis)
+### 📊 Dashboard Harga Real-Time
+Pantau harga acuan komoditas dari **34 provinsi** secara langsung. Data diambil otomatis dari sistem PIHPS Bank Indonesia melalui mekanisme proxy yang aman.
 
-### Backend & Database
-- **Supabase** (PostgreSQL Database & Edge Functions)
-- **Deno** (Runtime untuk Supabase Edge Functions)
-- **Google Gemini AI** (Engine untuk Analisis Intelijen Pasar)
+### 🏪 Pasar B2B Digital (LIVE)
+Pasar online yang **publik dan real-time** — petani bisa memasang dagangan mereka (pangan, peternakan, perkebunan) dan pembeli dari mana saja bisa melihat serta langsung menghubungi penjual via **WhatsApp** dengan satu klik.
+
+> 💡 **Catatan:** Semua listing tersimpan di cloud (Supabase) dan dapat diakses oleh siapa saja secara global, bukan hanya di perangkat lokal.
+
+### 🤖 Asisten AI Cerdas (Gemini)
+Chatbot berbasis **Google Gemini** yang memahami konteks harga komoditas saat ini. Bisa memberikan:
+- Analisis apakah harga jual Anda **wajar** atau **terlalu murah**
+- Saran strategi penjualan berdasarkan tren pasar
+- Rekomendasi waktu terbaik untuk menjual
+
+### 📈 Tren & Grafik Interaktif
+Visualisasi pergerakan harga historis komoditas menggunakan **Chart.js** — lengkap dengan data crowdsource dari sesama petani.
+
+### 👥 Komunitas & Leaderboard
+Sistem gamifikasi yang membuat petani semangat berkontribusi:
+- **XP & Level** — Dapatkan poin setiap kali melaporkan harga atau memasang listing
+- **Peringkat** — Bersaing dengan petani lain di leaderboard
+- **Pencapaian** — Kumpulkan badge dan achievement
+
+### 📱 PWA + Mode Offline
+- Install langsung dari browser tanpa Play Store
+- **Tetap berfungsi tanpa internet** — data di-cache menggunakan IndexedDB
+- Sinkronisasi otomatis saat koneksi kembali
+
+### 🎨 UI/UX Premium
+- Efek **Ripple** di setiap tombol dan elemen interaktif
+- Mikro-animasi dan transisi halus
+- Desain **Glassmorphism** dengan palet Emerald khas pertanian
+- 100% responsif untuk mobile & desktop
+
+---
+
+## 🛠️ Tech Stack
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    FRONTEND                         │
+├─────────────────────────────────────────────────────┤
+│  HTML5 + Vanilla JS        Ringan & blazing fast    │
+│  Vanilla CSS3              Custom design system     │
+│  Vite                      Build tool + HMR         │
+│  Chart.js                  Visualisasi data         │
+│  vite-plugin-pwa           Service Worker & Manifest│
+├─────────────────────────────────────────────────────┤
+│                    BACKEND                          │
+├─────────────────────────────────────────────────────┤
+│  Supabase                  PostgreSQL + Realtime    │
+│  Supabase Edge Functions   Serverless API (Deno)    │
+│  Google Gemini API         AI/ML Engine             │
+│  ScraperAPI                Data proxy (BI PIHPS)    │
+├─────────────────────────────────────────────────────┤
+│                  DEPLOYMENT                         │
+├─────────────────────────────────────────────────────┤
+│  Vercel                    Hosting & CI/CD          │
+│  PWABuilder                Android APK packaging    │
+│  GitHub Releases           APK distribution         │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📡 Arsitektur Sistem
+
+```mermaid
+graph LR
+    A[👨‍🌾 Petani] -->|Buka App| B[TaniCerdas PWA]
+    B -->|Harga Resmi| C[Supabase Edge Function]
+    C -->|Proxy| D[BI PIHPS / Badan Pangan]
+    B -->|Jual/Beli| E[Supabase Database]
+    B -->|Tanya AI| F[Google Gemini API]
+    E -->|Realtime Sync| G[👀 Semua Pengguna]
+    B -->|Offline| H[IndexedDB Cache]
+    H -->|Online Kembali| E
+```
+
+### Alur Pengambilan Data PIHPS
+
+| Metode | Cara Kerja | Cocok Untuk |
+|--------|-----------|-------------|
+| ☁️ **Cloud Proxy** | Frontend → Supabase Edge → ScraperAPI → BI PIHPS | Pengguna umum |
+| 🏠 **Local Fetcher** | Jalankan `npm run sync-pihps` dari terminal | Admin / Developer |
 
 ---
 
 ## 🚀 Panduan Instalasi
 
-Ikuti langkah-langkah di bawah ini untuk menjalankan TaniCerdas secara lokal di mesin Anda.
+### Prasyarat
+- **Node.js** v18+
+- **NPM** v9+
+- Akun [Supabase](https://supabase.com) (gratis)
 
-### 1. Persiapan Awal
-Pastikan Anda sudah menginstal **Node.js** (versi 18 ke atas) dan **NPM**.
+### Setup Lokal
 
-### 2. Kloning Repositori
 ```bash
-git clone https://github.com/username/tanicerdas-ai.git
-cd tanicerdas-ai
-```
+# 1. Clone repositori
+git clone https://github.com/Azyte/Petani-Cerdas.git
+cd Petani-Cerdas
 
-### 3. Instalasi Dependensi
-```bash
+# 2. Install dependensi
 npm install
-```
 
-### 4. Menjalankan Server Lokal (Development)
-```bash
+# 3. Konfigurasi environment
+cp .env.example .env
+# Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY
+
+# 4. Jalankan development server
 npm run dev
-```
-Aplikasi akan berjalan di `http://localhost:5173/`. 
-*(Note: Jika terjadi isu modul PWA, Anda mungkin perlu melakukan restart pada perintah ini).*
+# → Buka http://localhost:5173
 
-### 5. Membangun Aplikasi (Production Build)
-Untuk melakukan kompilasi file aset untuk siap unggah ke *server* produksi:
-```bash
+# 5. Build untuk produksi
 npm run build
 ```
 
+### Environment Variables
+
+| Variable | Deskripsi |
+|----------|-----------|
+| `VITE_SUPABASE_URL` | URL project Supabase Anda |
+| `VITE_SUPABASE_ANON_KEY` | Anon/Public key Supabase |
+
 ---
 
-## 📡 Arsitektur Sistem (Pengambilan Data PIHPS)
+## 📦 Download APK
 
-TaniCerdas mengambil data menggunakan kombinasi metode untuk menghindari pemblokiran *firewall*:
+Anda bisa langsung download dan install TaniCerdas sebagai aplikasi Android:
 
-1. **Opsi A (Cloud Proxy):** *Frontend* akan mengirimkan permintaan ke *Supabase Edge Function* dengan menyertakan *API Key* pihak ketiga (misalnya ScraperAPI) yang diatur oleh pengguna melalui menu profil di aplikasi.
-2. **Opsi B (Local Fetcher):** Jika Anda berperan sebagai admin dan ingin memperbarui *database* secara manual dari komputer rumah Anda (tanpa perlu *Proxy API*), Anda dapat menjalankan skrip khusus:
-   ```bash
-   npm run sync-pihps
-   ```
+👉 **[Download TaniCerdas.apk (Latest Release)](https://github.com/Azyte/Petani-Cerdas/releases/latest)**
+
+> **Cara Install:** Download APK → Buka di HP Android → Izinkan sumber tidak dikenal → Selesai! 🎉
+
+---
+
+## 🗺️ Roadmap
+
+- [x] Dashboard harga real-time (BI PIHPS)
+- [x] Crowdsource pelaporan harga
+- [x] Asisten AI (Gemini)
+- [x] Pasar B2B publik (Supabase)
+- [x] PWA + Mode Offline
+- [x] Gamifikasi (XP, Level, Achievement)
+- [x] Android APK
+- [ ] Notifikasi push saat harga berubah drastis
+- [ ] Fitur upload foto produk di Pasar B2B
+- [ ] Multi-bahasa (Jawa, Sunda, Minang)
+- [ ] Integrasi cuaca untuk rekomendasi tanam
+
+---
+
+## 🤝 Kontribusi
+
+Kontribusi sangat diterima! Silakan:
+1. **Fork** repositori ini
+2. Buat **branch** fitur (`git checkout -b fitur/fitur-baru`)
+3. **Commit** perubahan (`git commit -m 'Menambahkan fitur baru'`)
+4. **Push** ke branch (`git push origin fitur/fitur-baru`)
+5. Buat **Pull Request**
+
+Untuk perubahan besar, silakan buka **Issue** terlebih dahulu untuk berdiskusi.
+
+---
+
+## 📄 Lisensi
+
+Didistribusikan di bawah lisensi **MIT**. Lihat `LICENSE` untuk informasi lebih lanjut.
 
 ---
 
 <div align="center">
-  <i>"Menghubungkan petani tradisional dengan kekuatan intelijen data modern."</i>
-  <br>
-  <b>Dibuat untuk kesejahteraan Petani Nusantara.</b>
+  <br/>
+  <img src="./public/assets/icon-192.png" alt="TaniCerdas" width="60"/>
+  <br/><br/>
+  <strong>TaniCerdas AI</strong>
+  <br/>
+  <em>Menghubungkan petani tradisional dengan kekuatan intelijen data modern.</em>
+  <br/><br/>
+  <sub>Dibangun dengan 💚 untuk kesejahteraan Petani Nusantara</sub>
+  <br/>
+  <sub>© 2026 <a href="https://github.com/Azyte">Azyte</a> — Hak cipta dilindungi</sub>
+  <br/><br/>
+  <a href="https://petani-cerdas.vercel.app">🌐 Live Demo</a> •
+  <a href="https://github.com/Azyte/Petani-Cerdas/releases/latest">📱 Download APK</a> •
+  <a href="https://github.com/Azyte/Petani-Cerdas/issues">🐛 Laporkan Bug</a>
 </div>
