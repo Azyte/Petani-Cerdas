@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+  <title>TaniCerdas AI — Intelijen Harga Pertanian</title>
+  <meta name="description" content="Dashboard cerdas harga pertanian untuk petani modern." />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌾</text></svg>">
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Splash Screen -->
+  <div id="splash-screen" class="splash">
+    <div class="splash-blob"></div>
+    <div class="splash-content">
+      <div class="splash-icon">🌾</div>
+      <h1 class="splash-title">Tani<span class="text-emerald">Cerdas</span> <span class="badge-ai">AI</span></h1>
+      <p class="splash-subtitle">Memuat Intelijen Pasar...</p>
+      <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- Layout wrapper -->
+  <div class="layout-wrapper hidden" id="main-app">
+    
+    <!-- Menu Sidebar -->
+    <aside id="layout-menu" class="glass-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <span class="brand-icon">🌾</span>
+          <span class="brand-text">Tani<span class="text-emerald">Cerdas</span></span>
+        </div>
+      </div>
+
+      <div class="sidebar-menu">
+        <div class="menu-label">MENU UTAMA</div>
+        <a href="#" id="nav-dashboard" class="menu-item active">
+          <span class="menu-icon">📊</span>
+          <span class="menu-text">Intelijen Harga</span>
+        </a>
+        <a href="#" id="nav-trend" class="menu-item">
+          <span class="menu-icon">📈</span>
+          <span class="menu-text">Tren Pasar</span>
+        </a>
+        
+        <div class="menu-label mt-4">KOMUNITAS</div>
+        <a href="#" class="menu-item" id="btn-sidebar-lapor">
+          <span class="menu-icon">📝</span>
+          <span class="menu-text">Lapor Harga</span>
+        </a>
+      </div>
+      
+      <!-- CTA Card -->
+      <div class="sidebar-cta">
+        <div class="cta-card">
+          <div class="cta-icon">👨‍🌾</div>
+          <h4 class="cta-title">Bantu Rekan Petani</h4>
+          <p class="cta-desc">Bagikan informasi harga dari pengepul di daerahmu hari ini.</p>
+          <button class="btn-glow" id="btn-side-lapor">Ayo Berbagi!</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Page Layout -->
+    <main class="layout-page">
+      
+      <!-- Top Navbar (Glass) -->
+      <nav class="glass-navbar">
+        <div class="navbar-content">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" placeholder="Cari wawasan komoditas atau daerah...">
+          </div>
+          <div class="user-profile" id="btn-profile-settings" style="cursor:pointer" title="Pengaturan Proxy API">
+            <div class="user-avatar">🧑‍🌾</div>
+            <div class="user-info">
+               <span class="user-name">Petani Hebat</span>
+               <span class="user-role">Premium Member</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Content wrapper -->
+      <div class="content-wrapper">
+        <div class="container">
+          
+          <!-- Command Center (Filter) - Shared across views -->
+          <div class="command-center premium-card">
+            <div class="command-grid">
+              <div class="input-group">
+                <label>📍 Provinsi Target</label>
+                <div class="custom-select-wrap">
+                  <select id="select-province" class="custom-select"><option value="">Semua Provinsi</option></select>
+                  <span class="select-arrow">▾</span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>🏘️ Kota/Kabupaten</label>
+                <div class="custom-select-wrap">
+                  <select id="select-city" class="custom-select" disabled><option value="">Seluruh Kota</option></select>
+                  <span class="select-arrow">▾</span>
+                </div>
+              </div>
+              <div class="input-group highlight-group">
+                <label>🌽 Komoditas Prioritas</label>
+                <div class="custom-select-wrap focus-ring">
+                  <select id="select-commodity" class="custom-select"><option value="">Tentukan Komoditas...</option></select>
+                  <span class="select-arrow">▾</span>
+                </div>
+              </div>
+              <div class="input-group btn-group">
+                <label class="invisible">Aksi</label>
+                <button id="btn-refresh" class="btn-emerald w-100">Cek Data 🚀</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State (Shared) -->
+          <div id="empty-state" class="empty-state">
+            <div class="empty-icon-pulse">
+               <div class="pulse-ring"></div>
+               <span class="icon">✨</span>
+            </div>
+            <h3 class="empty-title">Siap Mengeksekusi Pasar?</h3>
+            <p class="empty-desc">Pilih provinsi dan komoditas di "Command Center" atas untuk membongkar rahasia harga pasar dan memantau pergerakan harga.</p>
+          </div>
+
+          <!-- ============================================= -->
+          <!-- VIEW 1: DASHBOARD (Intelijen Harga)           -->
+          <!-- ============================================= -->
+          <div id="view-dashboard" class="dashboard-content hidden">
+            
+            <div class="dashboard-top-grid">
+              <!-- Hero Welcome Card -->
+              <div class="hero-premium-card">
+                 <div class="hero-bg-art"></div>
+                 <div class="hero-content">
+                    <span class="hero-badge">AI INSIGHTS ON</span>
+                    <h2 class="hero-title" id="hero-commodity-name">Memuat Data...</h2>
+                    <p class="hero-desc">Menganalisis selisih Harga Acuan Pemerintah dengan realita di lapangan. Jangan jual murah, pelajari kekuatan Anda!</p>
+                    <a href="#ai-panel" class="btn-white-glass mt-4">Lihat Rekomendasi ▾</a>
+                 </div>
+                 <div class="hero-mascot">🌾</div>
+              </div>
+              
+              <!-- Stat Cards Grid -->
+              <div class="stats-premium-grid">
+                 
+                 <!-- HAP Card -->
+                 <div class="stat-card shine-effect">
+                    <div class="stat-icon-wrap bg-blue-light">
+                       <span class="icon">🏛️</span>
+                    </div>
+                    <div class="stat-info">
+                       <span class="stat-label">Harga Acuan / HPP</span>
+                       <h3 class="stat-number text-slate" id="stat-hap-value">-</h3>
+                       <span class="stat-footer text-sky" id="stat-hap-label">Batasan minimum aman</span>
+                    </div>
+                 </div>
+
+                 <!-- Market Card -->
+                 <div class="stat-card shine-effect">
+                    <div class="stat-icon-wrap bg-yellow-light">
+                       <span class="icon">🤝</span>
+                    </div>
+                    <div class="stat-info">
+                       <span class="stat-label">Rata-Rata Pengepul</span>
+                       <h3 class="stat-number text-emerald" id="stat-market-value">-</h3>
+                       <span class="stat-footer text-orange" id="stat-market-label">Berdasarkan data lapangan</span>
+                    </div>
+                 </div>
+                 
+              </div>
+            </div>
+
+            <!-- Second Row -->
+            <div class="dashboard-bottom-grid">
+              
+              <!-- AI Panel -->
+              <div class="ai-premium-card" id="ai-panel">
+                <div class="ai-header">
+                  <div class="ai-header-left">
+                    <div class="ai-logo-box">🤖</div>
+                    <h3 class="ai-header-title">Analisis TaniAI</h3>
+                  </div>
+                  <div class="ai-pulse-indicator hidden" id="ai-loading">
+                    <span class="pulse-dot"></span> Menganalisis...
+                  </div>
+                </div>
+                
+                <div class="ai-body" id="ai-content">
+                  <div class="skeleton-line full"></div>
+                  <div class="skeleton-line long"></div>
+                  <div class="skeleton-line medium mt-4"></div>
+                </div>
+              </div>
+              
+              <!-- Community Reports -->
+              <div class="reports-premium-card">
+                <div class="reports-header">
+                  <h3 class="reports-title">Radar Harga Lokasi</h3>
+                  <button id="btn-report-action" class="btn-subtle">Lapor Data 📝</button>
+                </div>
+                <div class="reports-body">
+                  <ul class="reports-list" id="reports-list">
+                    <!-- Populated by JS -->
+                  </ul>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <!-- /view-dashboard -->
+
+          <!-- ============================================= -->
+          <!-- VIEW 2: TREN PASAR                            -->
+          <!-- ============================================= -->
+          <div id="view-trend" class="trend-content hidden">
+             
+             <div class="ai-premium-card p-5" style="padding: 2rem;">
+               <div class="ai-header" style="border-bottom:none; padding-bottom:0;">
+                  <div class="ai-header-left mb-4">
+                    <div class="ai-logo-box" style="background:var(--emerald-500)">📈</div>
+                    <h3 class="ai-header-title">Pergerakan Historis Harga Komoditas</h3>
+                  </div>
+               </div>
+               
+               <div style="position: relative; height:400px; width:100%">
+                 <canvas id="trendChart"></canvas>
+               </div>
+               <p class="text-slate-500 mt-4 text-center text-sm">Grafik dibentuk berdasarkan data *crowdsourced* dari petani di sekitar Anda selama sebulan terakhir.</p>
+             </div>
+
+          </div>
+          <!-- /view-trend -->
+          
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Report Modal Overlay -->
+  <div id="report-modal" class="premium-modal-wrapper hidden">
+    <div class="premium-modal">
+      <div class="modal-header-v2">
+        <h3>📝 Bagikan Info Harga</h3>
+        <button type="button" class="btn-close-v2" id="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body-v2">
+        <p class="modal-instruction">Informasi yang benar membantu petani lain terhindar dari permainan harga tengkulak.</p>
+        <form id="report-form" class="modern-form">
+          <div class="input-group mb-4">
+            <label>Penawaran Harga (Rp/kg)</label>
+            <div class="input-with-icon">
+              <span class="prefix">Rp</span>
+              <input type="number" id="report-price" placeholder="Misal: 4500" required>
+            </div>
+          </div>
+          <div class="input-group mb-5">
+            <label>Tipe Pembeli</label>
+            <div class="custom-select-wrap">
+              <select id="report-buyer" class="custom-select border-focus" required>
+                <option value="pengepul">Pengepul / Tengkulak</option>
+                <option value="pasar">Pasar Tradisional / Grosir</option>
+                <option value="koperasi">Koperasi / KUD</option>
+                <option value="bulog">Tengkulak Besar / Bulog</option>
+                <option value="lainnya">Lainnya...</option>
+              </select>
+              <span class="select-arrow">▾</span>
+            </div>
+          </div>
+          <div class="form-actions-v2">
+            <button type="button" class="btn-ghost" id="btn-cancel-report">Batal</button>
+            <button type="submit" class="btn-emerald">Simpan Data</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    </div>
+  </div>
+  
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-bottom-nav">
+    <a href="#" class="nav-item active" data-target="dashboardContent">
+      <div class="nav-icon">📊</div>
+      <span>Beranda</span>
+    </a>
+    <a href="#" class="nav-item" data-target="trenPasarContent">
+      <div class="nav-icon">📈</div>
+      <span>Tren Pasar</span>
+    </a>
+    <a href="#" class="nav-item" onclick="document.getElementById('btn-report-action')?.click()">
+      <div class="nav-icon">📝</div>
+      <span>Lapor</span>
+    </a>
+  </nav>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
