@@ -19,52 +19,46 @@ export async function sendMessage({ message, context, onChunk, onDone, onError }
   let attempt = 0;
   let response;
 
-  while (attempt < maxRetries) {
-    try {
-      response = await fetch(`${SUPABASE_URL}/functions/v1/tani-cerdas-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({
-          message,
-          context
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        // Cek jika error 503 (High Demand)
-        if (response.status === 503 || errorText.includes('503 Service Unavailable') || errorText.includes('high demand')) {
-          attempt++;
-          if (attempt >= maxRetries) {
-            throw new Error(`Sistem AI sedang sangat sibuk (High Demand). Silakan coba lagi dalam beberapa menit.`);
-          }
-          if (onChunk && attempt === 1) onChunk(`\n\n_Server AI sedang padat, mencoba ulang (Percobaan ${attempt}/${maxRetries})..._`, '');
-          // Tunggu sebentar sebelum mencoba lagi (Exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, 1500 * attempt));
-          continue;
-        }
-        throw new Error(`API Error ${response.status}: ${errorText}`);
-      }
-      break; // Keluar dari loop jika sukses
-    } catch (error) {
-      if (attempt >= maxRetries - 1 || (!error.message.includes('503') && !error.message.includes('High Demand'))) {
-        throw error;
-      }
-      attempt++;
-      await new Promise(resolve => setTimeout(resolve, 1500 * attempt));
-    }
-  }
-
   try {
+    // 1. Fetch dengan mekanisme Retry
+    while (attempt < maxRetries) {
+      try {
+        response = await fetch(`${SUPABASE_URL}/functions/v1/tani-cerdas-chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({ message, context })
+        });
 
-    // Check if response is streaming
+        if (!response.ok) {
+          const errorText = await response.text();
+          if (response.status === 503 || errorText.includes('503 Service Unavailable') || errorText.includes('high demand')) {
+            attempt++;
+            if (attempt >= maxRetries) {
+              throw new Error(`Sistem AI sedang sangat sibuk (High Demand). Silakan coba lagi dalam beberapa menit.`);
+            }
+            if (onChunk && attempt === 1) onChunk(`\n\n_Server AI sedang padat, mencoba ulang (Percobaan ${attempt}/${maxRetries})..._`, '');
+            await new Promise(resolve => setTimeout(resolve, 1500 * attempt));
+            continue;
+          }
+          throw new Error(`API Error ${response.status}: ${errorText}`);
+        }
+        break; // Keluar dari loop jika sukses
+      } catch (error) {
+        if (attempt >= maxRetries - 1 || (!error.message.includes('503') && !error.message.includes('High Demand'))) {
+          throw error;
+        }
+        attempt++;
+        await new Promise(resolve => setTimeout(resolve, 1500 * attempt));
+      }
+    }
+
+    // 2. Baca response
     const contentType = response.headers.get('content-type') || '';
     
     if (contentType.includes('text/event-stream') || contentType.includes('text/plain')) {
-      // Handle streaming response
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let fullText = '';
@@ -75,21 +69,19 @@ export async function sendMessage({ message, context, onChunk, onDone, onError }
         
         const chunk = decoder.decode(value, { stream: true });
         fullText += chunk;
-        
         if (onChunk) onChunk(chunk, fullText);
       }
       
       if (onDone) onDone(fullText);
       return fullText;
     } else {
-      // Handle JSON response (non-streaming fallback)
       const data = await response.json();
       const text = data.text || data.reply || data.message || JSON.stringify(data);
-      
       if (onChunk) onChunk(text, text);
       if (onDone) onDone(text);
       return text;
     }
+
   } catch (error) {
     console.error('Chat error:', error);
     if (onError) onError(error);

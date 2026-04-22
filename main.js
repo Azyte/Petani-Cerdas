@@ -93,30 +93,35 @@ const dom = {
 // =============================================
 
 async function init() {
-  // Load initial data
-  const [provinces, commodities, referencePrices] = await Promise.all([
-    fetchProvinces(),
-    fetchCommodities(),
-    fetchReferencePrices()
-  ]);
+  try {
+    // Load initial data
+    const [provinces, commodities, referencePrices] = await Promise.all([
+      fetchProvinces(),
+      fetchCommodities(),
+      fetchReferencePrices()
+    ]);
 
-  state.provinces = provinces;
-  state.commodities = commodities;
-  state.referencePrices = referencePrices;
+    state.provinces = provinces;
+    state.commodities = commodities;
+    state.referencePrices = referencePrices;
 
-  // Populate selectors
-  populateSelect(dom.selectProvince, provinces, 'name', 'id');
-  populateCommoditySelect(dom.selectCommodity, commodities);
+    // Populate selectors
+    populateSelect(dom.selectProvince, provinces, 'name', 'id');
+    populateCommoditySelect(dom.selectCommodity, commodities);
 
-  // Bind events
-  bindEvents();
-
-  // Hide splash, show app
-  setTimeout(() => {
-    dom.splash.classList.add('fade-out');
-    dom.mainApp.classList.remove('hidden');
-    setTimeout(() => dom.splash.remove(), 600);
-  }, 1800); // Slightly longer splash for dramatic effect
+    // Bind events
+    bindEvents();
+  } catch (error) {
+    console.error('Initialization error:', error);
+    alert('Terjadi kesalahan saat memuat data aplikasi. Silakan muat ulang halaman.');
+  } finally {
+    // Hide splash, show app (always execute this even if error occurs)
+    setTimeout(() => {
+      if (dom.splash) dom.splash.classList.add('fade-out');
+      if (dom.mainApp) dom.mainApp.classList.remove('hidden');
+      setTimeout(() => { if (dom.splash) dom.splash.remove(); }, 600);
+    }, 1800); // Slightly longer splash for dramatic effect
+  }
 }
 
 // =============================================
