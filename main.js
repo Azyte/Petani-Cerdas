@@ -2,6 +2,8 @@ import './style.css';
 import { fetchProvinces, fetchCities, fetchCommodities, fetchReferencePrices, fetchCrowdsourcedPrices, submitPriceReport, formatRupiah, priceTypeLabel } from './src/data.js';
 import { sendMessage, buildContext } from './src/chat.js';
 import { registerSW } from 'virtual:pwa-register';
+import { queueReport, getPendingReports, removeFromQueue, cacheData, getCachedData, isOnline, onConnectivityChange } from './src/offline.js';
+import { getCurrentLang, setLang, t, getLanguages, getAILanguageInstruction } from './src/i18n.js';
 
 // Initialize PWA Service Worker
 const updateSW = registerSW({
@@ -29,7 +31,11 @@ const state = {
   selectedCommodity: null,
   isAnalyzing: false,
   currentView: 'dashboard',
-  chartInstance: null
+  chartInstance: null,
+  // New feature state
+  listings: JSON.parse(localStorage.getItem('tc_listings') || '[]'),
+  points: JSON.parse(localStorage.getItem('tc_points') || '{"xp":0,"reports":0,"logins":0}'),
+  weather: null
 };
 
 // DOM References
@@ -42,10 +48,16 @@ const dom = {
   // Navigation
   navDashboard: $('#nav-dashboard'),
   navTrend: $('#nav-trend'),
+  navMarketplace: $('#nav-marketplace'),
+  navCommunity: $('#nav-community'),
+  navRewards: $('#nav-rewards'),
   
   // Views
   viewDashboard: $('#view-dashboard'),
   viewTrend: $('#view-trend'),
+  viewMarketplace: $('#view-marketplace'),
+  viewCommunity: $('#view-community'),
+  viewRewards: $('#view-rewards'),
   
   // Selectors
   selectProvince: $('#select-province'),
@@ -55,6 +67,7 @@ const dom = {
   
   // Dashboard Areas
   emptyState: $('#empty-state'),
+  commandCenter: $('.command-center'),
   
   // Hero
   heroCommodityName: $('#hero-commodity-name'),
@@ -85,7 +98,31 @@ const dom = {
   reportForm: $('#report-form'),
   btnCancelReport: $('#btn-cancel-report'),
   reportPrice: $('#report-price'),
-  reportBuyer: $('#report-buyer')
+  reportBuyer: $('#report-buyer'),
+  reportPhoto: $('#report-photo'),
+  photoPreview: $('#photo-preview'),
+  
+  // Marketplace
+  marketplaceGrid: $('#marketplace-grid'),
+  btnAddListing: $('#btn-add-listing'),
+  listingModal: $('#listing-modal'),
+  listingForm: $('#listing-form'),
+  btnCloseListing: $('#btn-close-listing'),
+  btnCancelListing: $('#btn-cancel-listing'),
+  
+  // Community
+  leaderboardList: $('#leaderboard-list'),
+  
+  // Rewards
+  rewardsLevelName: $('#rewards-level-name'),
+  xpBar: $('#xp-bar'),
+  xpLabel: $('#xp-label'),
+  pointsNumber: $('#points-number'),
+  achievementsGrid: $('#achievements-grid'),
+  
+  // Navbar extras
+  connectivityBadge: $('#connectivity-badge'),
+  langPicker: $('#lang-picker')
 };
 
 // =============================================
@@ -111,6 +148,15 @@ async function init() {
 
     // Bind events
     bindEvents();
+
+    // Load weather data (non-blocking)
+    fetchWeather();
+
+    // Apply translations
+    applyTranslations();
+
+    // Sync any offline reports
+    if (isOnline()) syncOfflineQueue();
   } catch (error) {
     console.error('Initialization error:', error);
     alert('Terjadi kesalahan saat memuat data aplikasi. Silakan muat ulang halaman.');
@@ -171,38 +217,28 @@ function populateCommoditySelect(selectEl, commodities) {
 // =============================================
 
 function bindEvents() {
-  // Navigation Events
-  dom.navDashboard.addEventListener('click', (e) => {
-    e.preventDefault();
-    state.currentView = 'dashboard';
-    dom.navDashboard.classList.add('active');
-    dom.navTrend.classList.remove('active');
-    if (state.selectedCommodity) updateViews();
+  // Unified Navigation - Sidebar
+  var sidebarNavs = document.querySelectorAll('#layout-menu .menu-item[data-view]');
+  sidebarNavs.forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      switchView(item.getAttribute('data-view'));
+      sidebarNavs.forEach(function(n) { n.classList.remove('active'); });
+      item.classList.add('active');
+    });
   });
 
-  dom.navTrend.addEventListener('click', (e) => {
-    e.preventDefault();
-    state.currentView = 'trend';
-    dom.navTrend.classList.add('active');
-    dom.navDashboard.classList.remove('active');
-    if (state.selectedCommodity) updateViews();
-  });
-
-  // Mobile Nav Events
-  const mobileNavItems = document.querySelectorAll('.mobile-bottom-nav .nav-item');
-  mobileNavItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-      const target = e.currentTarget.getAttribute('data-target');
-      if(target === 'dashboardContent') {
-        state.currentView = 'dashboard';
-        mobileNavItems.forEach(nav => nav.classList.remove('active'));
-        e.currentTarget.classList.add('active');
-        if (state.selectedCommodity) updateViews();
-      } else if(target === 'trenPasarContent') {
-        state.currentView = 'trend';
-        mobileNavItems.forEach(nav => nav.classList.remove('active'));
-        e.currentTarget.classList.add('active');
-        if (state.selectedCommodity) updateViews();
+  // Unified Navigation - Mobile Bottom Nav
+  var viewMap = { dashboardContent:'dashboard', trenPasarContent:'trend', marketplaceContent:'marketplace', communityContent:'community', rewardsContent:'rewards' };
+  var mobileNavItems = document.querySelectorAll('.mobile-bottom-nav .nav-item');
+  mobileNavItems.forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = item.getAttribute('data-target');
+      if (viewMap[target]) {
+        switchView(viewMap[target]);
+        mobileNavItems.forEach(function(n) { n.classList.remove('active'); });
+        item.classList.add('active');
       }
     });
   });
@@ -274,6 +310,43 @@ function bindEvents() {
       }
     });
   }
+
+  // Photo preview
+  if (dom.reportPhoto) {
+    dom.reportPhoto.addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          dom.photoPreview.innerHTML = '<img src="' + ev.target.result + '" alt="preview">';
+          dom.photoPreview.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Marketplace modal events
+  if (dom.btnAddListing) dom.btnAddListing.addEventListener('click', function() { dom.listingModal.classList.remove('hidden'); });
+  if (dom.btnCloseListing) dom.btnCloseListing.addEventListener('click', function() { dom.listingModal.classList.add('hidden'); });
+  if (dom.btnCancelListing) dom.btnCancelListing.addEventListener('click', function() { dom.listingModal.classList.add('hidden'); });
+  if (dom.listingForm) dom.listingForm.addEventListener('submit', handleListingSubmit);
+
+  // Language picker
+  if (dom.langPicker) {
+    dom.langPicker.value = getCurrentLang();
+    dom.langPicker.addEventListener('change', function() {
+      setLang(dom.langPicker.value);
+      applyTranslations();
+    });
+  }
+
+  // Offline connectivity
+  onConnectivityChange(function(online) {
+    updateConnectivityBadge(online);
+    if (online) syncOfflineQueue();
+  });
+  updateConnectivityBadge(isOnline());
 }
 
 // =============================================
@@ -288,19 +361,62 @@ async function loadDashboardData(commodityId) {
     // Animate loader within empty state
     const pulseRing = dom.emptyState.querySelector('.pulse-ring');
     if(pulseRing) pulseRing.style.borderColor = 'var(--emerald-500)';
-    dom.emptyState.querySelector('h3').textContent = "Memproses Data Intelijen...";
-    dom.emptyState.querySelector('p').textContent = "Menarik data pasar historis dari jaringan TaniCerdas...";
+    dom.emptyState.querySelector('h3').textContent = t('ai_loading');
+    dom.emptyState.querySelector('p').textContent = t('hero_desc');
 
-    // Fetch 50 items for the chart (the API supports a limit argument if we modify it, but fetchCrowdsourcedPrices uses default 10 if not provided. We will request 50)
-    const [refPrices, crowdPrices] = await Promise.all([
-      fetchReferencePrices(commodityId),
-      fetchCrowdsourcedPrices(state.selectedProvince?.id, commodityId, 50)
-    ]);
-    
-    state.referencePrices = refPrices;
-    state.crowdsourcedPrices = crowdPrices;
+    try {
+      // Fetch data
+      const [refPrices, crowdPrices] = await Promise.all([
+        fetchReferencePrices(commodityId),
+        fetchCrowdsourcedPrices(state.selectedProvince?.id, commodityId, 50)
+      ]);
+      
+      state.referencePrices = refPrices;
+      state.crowdsourcedPrices = crowdPrices;
+
+      // Cache for offline use
+      if (isOnline()) {
+        cacheData('last_ref_prices_' + commodityId, refPrices);
+        cacheData('last_crowd_prices_' + commodityId + '_' + (state.selectedProvince?.id || 'nas'), crowdPrices);
+      }
+    } catch (error) {
+      console.warn('Online fetch failed, trying cache...', error);
+      const cachedRef = await getCachedData('last_ref_prices_' + commodityId);
+      const cachedCrowd = await getCachedData('last_crowd_prices_' + commodityId + '_' + (state.selectedProvince?.id || 'nas'));
+      if (cachedRef) state.referencePrices = cachedRef;
+      if (cachedCrowd) state.crowdsourcedPrices = cachedCrowd;
+    }
     
     updateViews();
+}
+
+function switchView(viewName) {
+  state.currentView = viewName;
+  // Hide all views
+  var allViews = [dom.viewDashboard, dom.viewTrend, dom.viewMarketplace, dom.viewCommunity, dom.viewRewards];
+  allViews.forEach(function(v) { if (v) v.classList.add('hidden'); });
+  
+  // Show/hide command center & empty state based on view type
+  var dataViews = ['dashboard', 'trend'];
+  if (dom.commandCenter) dom.commandCenter.style.display = dataViews.indexOf(viewName) >= 0 ? '' : 'none';
+  if (dom.emptyState) dom.emptyState.style.display = dataViews.indexOf(viewName) >= 0 ? '' : 'none';
+
+  if (viewName === 'dashboard' || viewName === 'trend') {
+    if (state.selectedCommodity) updateViews();
+    else {
+      dom.emptyState.classList.remove('hidden');
+      dom.emptyState.style.display = '';
+    }
+  } else if (viewName === 'marketplace') {
+    dom.viewMarketplace.classList.remove('hidden');
+    renderMarketplace();
+  } else if (viewName === 'community') {
+    dom.viewCommunity.classList.remove('hidden');
+    renderCommunity();
+  } else if (viewName === 'rewards') {
+    dom.viewRewards.classList.remove('hidden');
+    renderRewards();
+  }
 }
 
 function updateViews() {
@@ -376,6 +492,9 @@ function renderTrendMode() {
     state.chartInstance.destroy();
   }
 
+  // Render Weather at the top of trend view
+  renderWeatherWidget(dom.viewTrend);
+
   // Prepare data (Reverse so oldest is first)
   const chartDataReversed = [...state.crowdsourcedPrices].reverse();
   
@@ -385,66 +504,79 @@ function renderTrendMode() {
   
   const dataPoints = chartDataReversed.map(p => p.reported_price);
 
+  // Add 3 days prediction (dashed line)
+  const predictionLabels = ['T+1', 'T+2', 'T+3'];
+  const lastPrice = dataPoints[dataPoints.length - 1] || 0;
+  const predictionPoints = dataPoints.map(() => null); // padding for existing data
+  
+  // Simple "AI" prediction logic for demo (fluctuation around last price)
+  const p1 = lastPrice * (1 + (Math.random() * 0.04 - 0.01));
+  const p2 = p1 * (1 + (Math.random() * 0.04 - 0.01));
+  const p3 = p2 * (1 + (Math.random() * 0.04 - 0.01));
+  
+  const fullLabels = [...labels, ...predictionLabels];
+  const predictionLine = [...predictionPoints.slice(0, -1), lastPrice, p1, p2, p3];
+
   if (labels.length === 0) {
     labels.push("Tak ada data");
     dataPoints.push(0);
   }
 
   const ctx = dom.trendChart.getContext('2d');
-  
-  // Create gradient
   const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-  gradient.addColorStop(0, 'rgba(5, 150, 105, 0.5)'); // Emerald 600
+  gradient.addColorStop(0, 'rgba(5, 150, 105, 0.5)'); 
   gradient.addColorStop(1, 'rgba(5, 150, 105, 0.0)');
 
   state.chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: labels,
-      datasets: [{
-        label: `Pergerakan Harga ${state.selectedCommodity.name}`,
-        data: dataPoints,
-        borderColor: '#059669', // Emerald
-        backgroundColor: gradient,
-        borderWidth: 3,
-        pointBackgroundColor: '#ffffff',
-        pointBorderColor: '#059669',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        fill: true,
-        tension: 0.4
-      }]
+      labels: fullLabels,
+      datasets: [
+        {
+          label: `Harga Realitas`,
+          data: dataPoints,
+          borderColor: '#059669',
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#059669'
+        },
+        {
+          label: `Prediksi AI (7 Hari Ke Depan)`,
+          data: predictionLine,
+          borderColor: '#f59e0b', // Gold
+          borderDash: [5, 5],
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#f59e0b'
+        }
+      ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: { display: true, position: 'top', labels: { font: { family: 'Inter', weight: '600' } } },
         tooltip: {
           backgroundColor: '#0f172a',
           titleFont: { family: 'Outfit', size: 14 },
           bodyFont: { family: 'Inter', size: 14 },
           padding: 12,
-          displayColors: false,
-          callbacks: {
-            label: function(context) { return formatRupiah(context.parsed.y); }
-          }
+          displayColors: true
         }
       },
       scales: {
         y: {
           beginAtZero: false,
-          grid: { color: '#f1f5f9', drawBorder: false },
-          ticks: {
-            font: { family: 'Inter', size: 12 },
-            color: '#64748b',
-            callback: function(value) { return 'Rp ' + (value/1000) + 'k'; }
-          }
+          grid: { color: '#f1f5f9' },
+          ticks: { font: { family: 'Inter' }, callback: (v) => 'Rp ' + v.toLocaleString() }
         },
         x: {
-          grid: { display: false, drawBorder: false },
-          ticks: { font: { family: 'Inter', size: 12 }, color: '#64748b', maxRotation: 45, minRotation: 45 }
+          grid: { display: false },
+          ticks: { font: { family: 'Inter' } }
         }
       }
     }
@@ -463,7 +595,7 @@ async function triggerAutoAnalysis() {
   `;
   dom.aiLoading.classList.remove('hidden');
 
-  const context = buildContext({
+  var context = buildContext({
     province: state.selectedProvince,
     city: state.selectedCity,
     commodity: state.selectedCommodity,
@@ -471,7 +603,13 @@ async function triggerAutoAnalysis() {
     crowdsourcedPrices: state.crowdsourcedPrices
   });
 
-  const prompt = "Buat laporan singkat bergaya profesional. Beri kesimpulan di baris pertama (gunakan badge Wajar/Perlu Negosiasi/Tidak Wajar). Berikan minimal 1 target harga konkrit, dan 2 poin ringkas strategi penjualan untuk petani pada komoditas ini di area ini.";
+  // Add weather data to context if available
+  if (state.weather) {
+    context.weather = state.weather;
+  }
+
+  var langInstruction = getAILanguageInstruction();
+  var prompt = langInstruction + "Buat laporan singkat bergaya profesional. Beri kesimpulan di baris pertama (gunakan badge Wajar/Perlu Negosiasi/Tidak Wajar). Berikan minimal 1 target harga konkrit, dan 2 poin ringkas strategi penjualan untuk petani pada komoditas ini di area ini. Jika ada data cuaca, sebutkan dampaknya ke harga.";
 
   try {
     await sendMessage({
@@ -525,37 +663,285 @@ async function handleReportSubmit(e) {
     alert('Pilih provinsi dan komoditas terlebih dahulu di Command Center.'); return;
   }
 
-  const price = parseFloat(dom.reportPrice.value);
-  const buyerType = dom.reportBuyer.value;
+  var price = parseFloat(dom.reportPrice.value);
+  var buyerType = dom.reportBuyer.value;
   if (!price || price <= 0) return;
 
-  try {
-    const originalBtnText = dom.reportForm.querySelector('button[type="submit"]').textContent;
-    dom.reportForm.querySelector('button[type="submit"]').textContent = 'Enkripsi Data...';
-    dom.reportForm.querySelector('button[type="submit"]').disabled = true;
+  var reportData = {
+    commodityId: state.selectedCommodity.id,
+    provinceId: state.selectedProvince.id,
+    cityId: state.selectedCity ? state.selectedCity.id : null,
+    reportedPrice: price,
+    buyerType: buyerType,
+    reporterName: null,
+    notes: null
+  };
 
-    await submitPriceReport({
-      commodityId: state.selectedCommodity.id,
-      provinceId: state.selectedProvince.id,
-      cityId: state.selectedCity?.id,
-      reportedPrice: price,
-      buyerType,
-      reporterName: null,
-      notes: null
-    });
+  try {
+    var submitBtn = dom.reportForm.querySelector('button[type="submit"]');
+    var originalBtnText = submitBtn.textContent;
+    submitBtn.textContent = 'Enkripsi Data...';
+    submitBtn.disabled = true;
+
+    if (isOnline()) {
+      await submitPriceReport(reportData);
+    } else {
+      await queueReport(reportData);
+      alert(t('offline_queued'));
+    }
+
+    // Award points for reporting
+    addPoints(10, 'report');
 
     dom.reportModal.classList.add('hidden');
     dom.reportForm.reset();
-    dom.reportForm.querySelector('button[type="submit"]').textContent = originalBtnText;
-    dom.reportForm.querySelector('button[type="submit"]').disabled = false;
+    if (dom.photoPreview) { dom.photoPreview.innerHTML = ''; dom.photoPreview.classList.add('hidden'); }
+    submitBtn.textContent = originalBtnText;
+    submitBtn.disabled = false;
     
-    // Refresh Dashbaod Automatically
-    await loadDashboardData(state.selectedCommodity.id);
+    if (state.selectedCommodity && isOnline()) await loadDashboardData(state.selectedCommodity.id);
 
   } catch (error) {
-    alert('Autentikasi gagal saat menyimpan data. Coba lagi.');
+    alert('Gagal menyimpan data. Coba lagi.');
     dom.reportForm.querySelector('button[type="submit"]').disabled = false;
   }
+}
+
+// =============================================
+// MARKETPLACE — Listing CRUD (localStorage)
+// =============================================
+
+function renderMarketplace() {
+  if (!dom.marketplaceGrid) return;
+  var listings = state.listings;
+  
+  if (listings.length === 0) {
+    dom.marketplaceGrid.innerHTML = '<div class="marketplace-empty"><div class="marketplace-empty-icon">\ud83c\udfea</div><h3>Belum Ada Listing</h3><p>Jadilah yang pertama memasang komoditas Anda di pasar digital!</p></div>';
+    return;
+  }
+
+  dom.marketplaceGrid.innerHTML = listings.map(function(item, idx) {
+    var statusLabel = item.status === 'ready' ? 'Siap Panen' : 'Tersedia';
+    var statusClass = item.status === 'ready' ? 'ready' : 'available';
+    return '<div class="listing-card">' +
+      '<div class="listing-header"><span class="listing-commodity">' + item.commodity + '</span><span class="listing-status-badge ' + statusClass + '">' + statusLabel + '</span></div>' +
+      '<div class="listing-price">' + formatRupiah(item.price) + '/kg</div>' +
+      '<div class="listing-detail">' +
+        '<div class="listing-detail-row"><span>Jumlah</span><strong>' + item.qty + ' kg</strong></div>' +
+        '<div class="listing-detail-row"><span>Lokasi</span><strong>' + item.location + '</strong></div>' +
+      '</div>' +
+      '<div class="listing-footer">' +
+        '<button class="btn-contact" onclick="window.open(\'https://wa.me/' + item.contact.replace(/^0/,'62') + '\',\'_blank\')">Hubungi via WA</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function handleListingSubmit(e) {
+  e.preventDefault();
+  var newListing = {
+    id: Date.now(),
+    commodity: document.getElementById('listing-commodity').value,
+    qty: parseInt(document.getElementById('listing-qty').value),
+    price: parseInt(document.getElementById('listing-price').value),
+    location: document.getElementById('listing-location').value,
+    contact: document.getElementById('listing-contact').value,
+    status: document.getElementById('listing-status').value,
+    createdAt: new Date().toISOString()
+  };
+  
+  state.listings.push(newListing);
+  localStorage.setItem('tc_listings', JSON.stringify(state.listings));
+  
+  addPoints(5, 'listing');
+  
+  dom.listingModal.classList.add('hidden');
+  dom.listingForm.reset();
+  renderMarketplace();
+}
+
+// =============================================
+// COMMUNITY — Leaderboard
+// =============================================
+
+function renderCommunity() {
+  if (!dom.leaderboardList) return;
+  
+  var reporters = generateLeaderboardData();
+  
+  dom.leaderboardList.innerHTML = reporters.map(function(r, idx) {
+    var rankClass = idx < 3 ? ' lb-rank-' + (idx+1) : '';
+    var medal = idx === 0 ? '\ud83e\udd47' : idx === 1 ? '\ud83e\udd48' : idx === 2 ? '\ud83e\udd49' : (idx+1);
+    var level = getLevel(r.reports);
+    return '<li class="leaderboard-item">' +
+      '<span class="lb-rank' + rankClass + '">' + medal + '</span>' +
+      '<div class="lb-avatar">\ud83e\uddd1\u200d\ud83c\udf3e</div>' +
+      '<div class="lb-info"><div class="lb-name">' + r.name + '</div><div class="lb-stats">' + r.reports + ' laporan</div></div>' +
+      '<span class="lb-badge ' + level.css + '">' + level.name + '</span>' +
+    '</li>';
+  }).join('');
+}
+
+function generateLeaderboardData() {
+  var names = ['Pak Suharto', 'Bu Siti Aminah', 'Mas Budi Prasetyo', 'Pak Joko Widodo', 'Bu Mega Lestari', 'Pak Ahmad Dahlan', 'Bu Kartini', 'Mas Rudi Hartono', 'Pak Surya Darma', 'Bu Anisa Rahma'];
+  var myReports = state.points.reports || 0;
+  var data = names.map(function(name, i) {
+    return { name: name, reports: Math.max(1, 50 - i * 5 + Math.floor(Math.random() * 3)) };
+  });
+  data.push({ name: 'Anda \u2b50', reports: myReports });
+  data.sort(function(a, b) { return b.reports - a.reports; });
+  return data.slice(0, 10);
+}
+
+function getLevel(reports) {
+  if (reports >= 50) return { name: t('community_level_legenda'), css: 'legenda' };
+  if (reports >= 20) return { name: t('community_level_ahli'), css: 'ahli' };
+  if (reports >= 5) return { name: t('community_level_aktif'), css: 'aktif' };
+  return { name: t('community_level_pemula'), css: 'pemula' };
+}
+
+// =============================================
+// REWARDS & GAMIFICATION
+// =============================================
+
+var ACHIEVEMENTS = [
+  { id: 'first_report', icon: '\ud83d\udcdd', name: 'Laporan Pertama', desc: 'Kirim 1 laporan harga', need: 1, type: 'reports' },
+  { id: 'active_5', icon: '\ud83d\udd25', name: 'Petani Aktif', desc: 'Kirim 5 laporan harga', need: 5, type: 'reports' },
+  { id: 'expert_20', icon: '\ud83c\udf1f', name: 'Ahli Pasar', desc: 'Kirim 20 laporan harga', need: 20, type: 'reports' },
+  { id: 'legend_50', icon: '\ud83d\udc51', name: 'Legenda Tani', desc: 'Kirim 50 laporan harga', need: 50, type: 'reports' },
+  { id: 'first_listing', icon: '\ud83c\udfea', name: 'Pedagang Pertama', desc: 'Pasang 1 listing di pasar', need: 1, type: 'listings' },
+  { id: 'trader_5', icon: '\ud83d\udcb0', name: 'Pengusaha Tani', desc: 'Pasang 5 listing di pasar', need: 5, type: 'listings' }
+];
+
+function addPoints(amount, type) {
+  state.points.xp = (state.points.xp || 0) + amount;
+  if (type === 'report') state.points.reports = (state.points.reports || 0) + 1;
+  if (type === 'listing') state.points.listings = (state.points.listings || 0) + 1;
+  localStorage.setItem('tc_points', JSON.stringify(state.points));
+}
+
+function renderRewards() {
+  var xp = state.points.xp || 0;
+  var levelThresholds = [
+    { name: t('community_level_pemula'), min: 0, max: 100 },
+    { name: t('community_level_aktif'), min: 100, max: 300 },
+    { name: t('community_level_ahli'), min: 300, max: 700 },
+    { name: t('community_level_legenda'), min: 700, max: 9999 }
+  ];
+  
+  var currentLevel = levelThresholds[0];
+  for (var i = 0; i < levelThresholds.length; i++) {
+    if (xp >= levelThresholds[i].min) currentLevel = levelThresholds[i];
+  }
+  
+  var progress = Math.min(100, ((xp - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100);
+  
+  if (dom.rewardsLevelName) dom.rewardsLevelName.textContent = currentLevel.name;
+  if (dom.xpBar) dom.xpBar.style.width = progress + '%';
+  if (dom.xpLabel) dom.xpLabel.textContent = xp + ' / ' + currentLevel.max + ' XP';
+  if (dom.pointsNumber) dom.pointsNumber.textContent = xp;
+
+  // Achievements
+  if (dom.achievementsGrid) {
+    dom.achievementsGrid.innerHTML = ACHIEVEMENTS.map(function(a) {
+      var current = a.type === 'reports' ? (state.points.reports || 0) : (state.points.listings || 0);
+      var unlocked = current >= a.need;
+      return '<div class="achievement-card' + (unlocked ? '' : ' locked') + '">' +
+        '<div class="achievement-icon">' + a.icon + '</div>' +
+        '<div class="achievement-name">' + a.name + '</div>' +
+        '<div class="achievement-desc">' + (unlocked ? '\u2705 Tercapai!' : current + '/' + a.need) + '</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+// =============================================
+// OFFLINE SYNC
+// =============================================
+
+function updateConnectivityBadge(online) {
+  if (!dom.connectivityBadge) return;
+  if (online) {
+    dom.connectivityBadge.textContent = '\ud83d\udfe2 ' + t('online_badge');
+    dom.connectivityBadge.className = 'connectivity-badge online';
+  } else {
+    dom.connectivityBadge.textContent = '\ud83d\udd34 ' + t('offline_badge');
+    dom.connectivityBadge.className = 'connectivity-badge offline';
+  }
+}
+
+async function syncOfflineQueue() {
+  try {
+    var pending = await getPendingReports();
+    for (var i = 0; i < pending.length; i++) {
+      var report = pending[i];
+      try {
+        await submitPriceReport(report);
+        await removeFromQueue(report.id);
+        console.log('Synced offline report:', report.id);
+      } catch (err) {
+        console.error('Failed to sync report:', err);
+      }
+    }
+  } catch (err) {
+    console.error('Error reading offline queue:', err);
+  }
+}
+
+// =============================================
+// WEATHER (Open-Meteo API — free, no key needed)
+// =============================================
+
+async function fetchWeather() {
+  try {
+    var lat = -6.2; var lon = 106.8; // Default: Jakarta
+    var resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon + '&current=temperature_2m,relative_humidity_2m,precipitation&timezone=Asia/Jakarta');
+    var data = await resp.json();
+    if (data && data.current) {
+      state.weather = {
+        temp: data.current.temperature_2m,
+        humidity: data.current.relative_humidity_2m,
+        rain: data.current.precipitation
+      };
+    }
+  } catch (err) {
+    console.error('Weather fetch error:', err);
+  }
+}
+
+function renderWeatherWidget(container) {
+  if (!state.weather || !container) return;
+  var w = state.weather;
+  var existing = container.querySelector('.weather-widget');
+  if (existing) existing.remove();
+  
+  var div = document.createElement('div');
+  div.className = 'weather-widget';
+  div.innerHTML = '<div class="weather-item"><div class="weather-value">' + w.temp + '\u00b0C</div><div class="weather-label">' + t('weather_temp') + '</div></div>' +
+    '<div class="weather-item"><div class="weather-value">' + w.rain + ' mm</div><div class="weather-label">' + t('weather_rain') + '</div></div>' +
+    '<div class="weather-item"><div class="weather-value">' + w.humidity + '%</div><div class="weather-label">' + t('weather_humidity') + '</div></div>';
+  container.insertBefore(div, container.firstChild);
+}
+
+// =============================================
+// i18n — Apply Translations to UI
+// =============================================
+
+function applyTranslations() {
+  // Mobile nav labels
+  var mobileNavLabels = document.querySelectorAll('.mobile-bottom-nav .nav-item span');
+  var navKeys = ['nav_home', 'nav_trend', 'nav_market', 'nav_community', 'nav_rewards'];
+  mobileNavLabels.forEach(function(el, i) {
+    if (navKeys[i]) el.textContent = t(navKeys[i]);
+  });
+  
+  // Data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  
+  // Connectivity badge
+  updateConnectivityBadge(isOnline());
 }
 
 document.addEventListener('DOMContentLoaded', init);

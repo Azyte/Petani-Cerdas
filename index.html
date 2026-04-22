@@ -40,16 +40,28 @@
 
       <div class="sidebar-menu">
         <div class="menu-label">MENU UTAMA</div>
-        <a href="#" id="nav-dashboard" class="menu-item active">
+        <a href="#" id="nav-dashboard" class="menu-item active" data-view="dashboard">
           <span class="menu-icon">📊</span>
           <span class="menu-text">Intelijen Harga</span>
         </a>
-        <a href="#" id="nav-trend" class="menu-item">
+        <a href="#" id="nav-trend" class="menu-item" data-view="trend">
           <span class="menu-icon">📈</span>
-          <span class="menu-text">Tren Pasar</span>
+          <span class="menu-text">Tren & Prediksi</span>
+        </a>
+        <a href="#" id="nav-marketplace" class="menu-item" data-view="marketplace">
+          <span class="menu-icon">🏪</span>
+          <span class="menu-text">Pasar B2B</span>
         </a>
         
         <div class="menu-label mt-4">KOMUNITAS</div>
+        <a href="#" id="nav-community" class="menu-item" data-view="community">
+          <span class="menu-icon">👥</span>
+          <span class="menu-text">Komunitas</span>
+        </a>
+        <a href="#" id="nav-rewards" class="menu-item" data-view="rewards">
+          <span class="menu-icon">🏆</span>
+          <span class="menu-text">Reward & Poin</span>
+        </a>
         <a href="#" class="menu-item" id="btn-sidebar-lapor">
           <span class="menu-icon">📝</span>
           <span class="menu-text">Lapor Harga</span>
@@ -77,11 +89,20 @@
             <span class="search-icon">🔍</span>
             <input type="text" class="search-input" placeholder="Cari wawasan komoditas atau daerah...">
           </div>
-          <div class="user-profile" id="btn-profile-settings" style="cursor:pointer" title="Pengaturan Proxy API">
-            <div class="user-avatar">🧑‍🌾</div>
-            <div class="user-info">
-               <span class="user-name">Petani Hebat</span>
-               <span class="user-role">Premium Member</span>
+          <div class="navbar-right">
+            <span id="connectivity-badge" class="connectivity-badge online">🟢 Online</span>
+            <select id="lang-picker" class="lang-picker" title="Pilih Bahasa">
+              <option value="id">🇮🇩 ID</option>
+              <option value="jw">🏛️ JW</option>
+              <option value="su">🌸 SU</option>
+              <option value="bug">⛵ BUG</option>
+            </select>
+            <div class="user-profile" id="btn-profile-settings" style="cursor:pointer" title="Pengaturan Proxy API">
+              <div class="user-avatar">🧑‍🌾</div>
+              <div class="user-info">
+                 <span class="user-name">Petani Hebat</span>
+                 <span class="user-role">Premium Member</span>
+              </div>
             </div>
           </div>
         </div>
@@ -240,6 +261,50 @@
 
           </div>
           <!-- /view-trend -->
+
+          <!-- ============================================= -->
+          <!-- VIEW 3: MARKETPLACE B2B                       -->
+          <!-- ============================================= -->
+          <div id="view-marketplace" class="marketplace-content hidden">
+            <div class="view-header-bar">
+              <div><h2 class="view-title">🏪 Pasar Komoditas</h2><p class="view-subtitle" data-i18n="market_subtitle">Jual langsung ke pengepul dan restoran tanpa perantara</p></div>
+              <button class="btn-emerald" id="btn-add-listing">+ Pasang Listing</button>
+            </div>
+            <div class="marketplace-grid" id="marketplace-grid"><!-- Populated by JS --></div>
+          </div>
+
+          <!-- ============================================= -->
+          <!-- VIEW 4: KOMUNITAS                             -->
+          <!-- ============================================= -->
+          <div id="view-community" class="community-content hidden">
+            <h2 class="view-title">👥 Komunitas Petani</h2>
+            <p class="view-subtitle">Kontributor data harga terbaik di daerahmu</p>
+            <div class="leaderboard-card premium-card">
+              <h3 class="leaderboard-title">🏅 Leaderboard Kontributor</h3>
+              <ol class="leaderboard-list" id="leaderboard-list"><!-- Populated by JS --></ol>
+            </div>
+          </div>
+
+          <!-- ============================================= -->
+          <!-- VIEW 5: REWARDS & GAMIFIKASI                  -->
+          <!-- ============================================= -->
+          <div id="view-rewards" class="rewards-content hidden">
+            <h2 class="view-title">🏆 Pusat Reward</h2>
+            <div class="rewards-profile-card premium-card">
+              <div class="rewards-avatar">🧑‍🌾</div>
+              <div class="rewards-info">
+                <h3 id="rewards-level-name">Petani Pemula</h3>
+                <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar" style="width:0%"></div></div>
+                <span class="xp-label" id="xp-label">0 / 100 XP</span>
+              </div>
+              <div class="rewards-points-box">
+                <span class="points-number" id="points-number">0</span>
+                <span class="points-label">POIN</span>
+              </div>
+            </div>
+            <h3 class="section-title mt-4">🎖️ Pencapaian</h3>
+            <div class="achievements-grid" id="achievements-grid"><!-- Populated by JS --></div>
+          </div>
           
         </div>
       </div>
@@ -263,7 +328,7 @@
               <input type="number" id="report-price" placeholder="Misal: 4500" required>
             </div>
           </div>
-          <div class="input-group mb-5">
+          <div class="input-group mb-4">
             <label>Tipe Pembeli</label>
             <div class="custom-select-wrap">
               <select id="report-buyer" class="custom-select border-focus" required>
@@ -276,6 +341,11 @@
               <span class="select-arrow">▾</span>
             </div>
           </div>
+          <div class="input-group mb-5">
+            <label>📸 Foto Bukti (Opsional)</label>
+            <input type="file" id="report-photo" accept="image/*" capture="environment" class="file-input">
+            <div id="photo-preview" class="photo-preview hidden"></div>
+          </div>
           <div class="form-actions-v2">
             <button type="button" class="btn-ghost" id="btn-cancel-report">Batal</button>
             <button type="submit" class="btn-emerald">Simpan Data</button>
@@ -286,6 +356,24 @@
     </div>
   </div>
   
+  <!-- Marketplace Listing Modal -->
+  <div id="listing-modal" class="premium-modal-wrapper hidden">
+    <div class="premium-modal">
+      <div class="modal-header-v2"><h3>🏪 Pasang Listing Baru</h3><button type="button" class="btn-close-v2" id="btn-close-listing">✕</button></div>
+      <div class="modal-body-v2">
+        <form id="listing-form" class="modern-form">
+          <div class="input-group mb-4"><label>Komoditas</label><input type="text" id="listing-commodity" placeholder="Misal: Tomat Merah" required></div>
+          <div class="input-group mb-4"><label>Jumlah (kg)</label><input type="number" id="listing-qty" placeholder="Misal: 500" required></div>
+          <div class="input-group mb-4"><label>Harga per kg (Rp)</label><div class="input-with-icon"><span class="prefix">Rp</span><input type="number" id="listing-price" placeholder="Misal: 8000" required></div></div>
+          <div class="input-group mb-4"><label>Lokasi</label><input type="text" id="listing-location" placeholder="Misal: Kab. Garut, Jawa Barat" required></div>
+          <div class="input-group mb-4"><label>Kontak (WA)</label><input type="tel" id="listing-contact" placeholder="08xxxxxxxxxx" required></div>
+          <div class="input-group mb-5"><label>Status</label><div class="custom-select-wrap"><select id="listing-status" class="custom-select"><option value="available">Tersedia</option><option value="ready">Siap Panen</option></select><span class="select-arrow">▾</span></div></div>
+          <div class="form-actions-v2"><button type="button" class="btn-ghost" id="btn-cancel-listing">Batal</button><button type="submit" class="btn-emerald">Pasang Listing</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Mobile Bottom Navigation -->
   <nav class="mobile-bottom-nav">
     <a href="#" class="nav-item active" data-target="dashboardContent">
@@ -294,11 +382,19 @@
     </a>
     <a href="#" class="nav-item" data-target="trenPasarContent">
       <div class="nav-icon">📈</div>
-      <span>Tren Pasar</span>
+      <span>Tren</span>
     </a>
-    <a href="#" class="nav-item" onclick="document.getElementById('btn-report-action')?.click()">
-      <div class="nav-icon">📝</div>
-      <span>Lapor</span>
+    <a href="#" class="nav-item" data-target="marketplaceContent">
+      <div class="nav-icon">🏪</div>
+      <span>Pasar</span>
+    </a>
+    <a href="#" class="nav-item" data-target="communityContent">
+      <div class="nav-icon">👥</div>
+      <span>Komunitas</span>
+    </a>
+    <a href="#" class="nav-item" data-target="rewardsContent">
+      <div class="nav-icon">🏆</div>
+      <span>Reward</span>
     </a>
   </nav>
 
