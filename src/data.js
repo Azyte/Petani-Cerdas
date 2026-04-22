@@ -144,7 +144,7 @@ export async function fetchMarketplaceListings() {
   const { data, error } = await supabase
     .from('tani_crowdsourced_prices')
     .select('*')
-    .eq('buyer_type', 'B2B_LISTING')
+    .like('notes', '%"isB2B":true%')
     .order('created_at', { ascending: false })
     .limit(50);
 
@@ -187,9 +187,10 @@ export async function submitMarketplaceListing(listing) {
       commodity_id: cId, 
       province_id: pId,
       reported_price: listing.price,
-      buyer_type: 'B2B_LISTING',
+      buyer_type: 'hpp_produsen', // Valid constraint value
       reporter_name: listing.contact,
       notes: JSON.stringify({
+        isB2B: true,
         commodity: listing.commodity,
         qty: listing.qty,
         location: listing.location,
