@@ -770,6 +770,8 @@ async function handleListingSubmit(e) {
   submitBtn.disabled = true;
 
   var newListing = {
+    commodityId: state.selectedCommodity ? state.selectedCommodity.id : 1,
+    provinceId: state.selectedProvince ? state.selectedProvince.id : 31,
     commodity: document.getElementById('listing-commodity').value,
     qty: parseInt(document.getElementById('listing-qty').value),
     price: parseInt(document.getElementById('listing-price').value),
@@ -800,7 +802,7 @@ async function handleListingSubmit(e) {
     
   } catch (error) {
     console.error("Gagal submit listing:", error);
-    alert("Gagal memposting lapak. Coba lagi.");
+    alert("Gagal memposting lapak: " + (error.message || "Kesalahan koneksi ke Supabase."));
   } finally {
     submitBtn.textContent = originalBtnText;
     submitBtn.disabled = false;

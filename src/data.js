@@ -177,12 +177,15 @@ export async function fetchMarketplaceListings() {
  * Submit B2B Marketplace Listing to Supabase
  */
 export async function submitMarketplaceListing(listing) {
-  // Use commodity_id 1 and province_id 31 as dummies to bypass constraints
+  // Use provided commodity_id and province_id, or fallback to safe defaults if they don't exist
+  const cId = listing.commodityId || 1;
+  const pId = listing.provinceId || 31;
+  
   const { data, error } = await supabase
     .from('tani_crowdsourced_prices')
     .insert({
-      commodity_id: 1, 
-      province_id: 31,
+      commodity_id: cId, 
+      province_id: pId,
       reported_price: listing.price,
       buyer_type: 'B2B_LISTING',
       reporter_name: listing.contact,
@@ -194,7 +197,10 @@ export async function submitMarketplaceListing(listing) {
       })
     });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Supabase Insert Error:', error);
+    throw new Error(error.message || 'Terjadi kesalahan pada database');
+  }
   return data;
 }
 
