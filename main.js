@@ -122,7 +122,15 @@ const dom = {
   
   // Navbar extras
   connectivityBadge: $('#connectivity-badge'),
-  langPicker: $('#lang-picker')
+  langPicker: $('#lang-picker'),
+  btnOpenSettings: $('#btn-open-settings'),
+  
+  // Settings Modal
+  settingsModal: $('#settings-modal'),
+  btnCloseSettings: $('#btn-close-settings'),
+  btnCancelSettings: $('#btn-cancel-settings'),
+  btnSaveSettings: $('#btn-save-settings'),
+  inputProxyKey: $('#input-proxy-key')
 };
 
 // =============================================
@@ -297,19 +305,17 @@ function bindEvents() {
   if(dom.btnCancelReport) dom.btnCancelReport.addEventListener('click', closeModal);
 
   if(dom.reportForm) dom.reportForm.addEventListener('submit', handleReportSubmit);
-
-  const btnProfileSettings = document.getElementById('btn-profile-settings');
-  if (btnProfileSettings) {
-    btnProfileSettings.addEventListener('click', () => {
-      const currentProxy = localStorage.getItem('tanicerdas_pihps_proxy') || '';
-      const proxyKey = prompt('⚙️ [Opsi A] Pengaturan ScraperAPI Proxy\n\nUntuk mengambil data asli dari BI, masukkan API Key ScraperAPI Anda:\n(Kosongkan untuk menggunakan data simulasi)', currentProxy);
-      
-      if (proxyKey !== null) {
-        localStorage.setItem('tanicerdas_pihps_proxy', proxyKey.trim());
-        alert(proxyKey.trim() ? 'Proxy API Key disimpan! Data sekarang menggunakan koneksi proxy ScraperAPI.' : 'Proxy API Key dihapus. Menggunakan data simulasi fallback.');
-      }
+  
+  // Settings modal events
+  if (dom.btnOpenSettings) {
+    dom.btnOpenSettings.addEventListener('click', function() {
+      dom.inputProxyKey.value = localStorage.getItem('tanicerdas_pihps_proxy') || '';
+      dom.settingsModal.classList.remove('hidden');
     });
   }
+  if (dom.btnCloseSettings) dom.btnCloseSettings.addEventListener('click', function() { dom.settingsModal.classList.add('hidden'); });
+  if (dom.btnCancelSettings) dom.btnCancelSettings.addEventListener('click', function() { dom.settingsModal.classList.add('hidden'); });
+  if (dom.btnSaveSettings) dom.btnSaveSettings.addEventListener('click', handleSettingsSave);
 
   // Photo preview
   if (dom.reportPhoto) {
@@ -942,6 +948,18 @@ function applyTranslations() {
   
   // Connectivity badge
   updateConnectivityBadge(isOnline());
+}
+
+function handleSettingsSave() {
+  var key = dom.inputProxyKey.value.trim();
+  localStorage.setItem('tanicerdas_pihps_proxy', key);
+  dom.settingsModal.classList.add('hidden');
+  
+  if (key) {
+    alert('✅ API Key berhasil disimpan! Koneksi ke data BI sekarang aktif melalui proxy.');
+  } else {
+    alert('ℹ️ API Key dihapus. Aplikasi kembali menggunakan mode simulasi.');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);

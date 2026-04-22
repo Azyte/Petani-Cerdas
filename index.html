@@ -90,21 +90,31 @@
             <input type="text" class="search-input" placeholder="Cari wawasan komoditas atau daerah...">
           </div>
           <div class="navbar-right">
-            <span id="connectivity-badge" class="connectivity-badge online">🟢 Online</span>
-            <select id="lang-picker" class="lang-picker" title="Pilih Bahasa">
-              <option value="id">🇮🇩 ID</option>
-              <option value="jw">🏛️ JW</option>
-              <option value="su">🌸 SU</option>
-              <option value="bug">⛵ BUG</option>
-            </select>
-            <div class="user-profile" id="btn-profile-settings" style="cursor:pointer" title="Pengaturan Proxy API">
-              <div class="user-avatar">🧑‍🌾</div>
-              <div class="user-info">
-                 <span class="user-name">Petani Hebat</span>
-                 <span class="user-role">Premium Member</span>
-              </div>
-            </div>
+        <div id="connectivity-badge" class="connectivity-badge online">
+          <span class="dot"></span> Online
+        </div>
+        
+        <select id="lang-picker" class="lang-picker">
+          <option value="id">ID</option>
+          <option value="jv">JV</option>
+          <option value="su">SU</option>
+          <option value="bug">BUG</option>
+        </select>
+
+        <button id="btn-open-settings" class="nav-icon-btn" title="Pengaturan">
+          ⚙️
+        </button>
+
+        <div class="user-info">
+          <div class="user-avatar">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Petani" alt="User">
           </div>
+          <div class="user-meta">
+            <div class="user-name">Petani Hebat</div>
+            <div class="user-role">Premium Member</div>
+          </div>
+        </div>
+      </div>
         </div>
       </nav>
 
@@ -375,6 +385,51 @@
   </div>
 
   <!-- Mobile Bottom Navigation -->
+  <!-- ScraperAPI Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content modal-content-v2">
+      <div class="modal-header-v2">
+        <div class="modal-title-wrap">
+          <div class="modal-icon-circle bg-emerald-50 text-emerald-600">⚙️</div>
+          <h2 class="modal-title">Pengaturan Koneksi BI</h2>
+        </div>
+        <button id="btn-close-settings" class="btn-close-icon">&times;</button>
+      </div>
+      
+      <div class="modal-body-v2">
+        <div class="tutorial-box">
+          <p class="tutorial-title">Cara Mendapatkan Data Real-Time:</p>
+          <div class="tutorial-step">
+            <span class="step-num">1</span>
+            <p>Buka <strong>scraperapi.com</strong> dan buat akun gratis.</p>
+          </div>
+          <div class="tutorial-step">
+            <span class="step-num">2</span>
+            <p>Salin <strong>API Key</strong> dari dashboard ScraperAPI Anda.</p>
+          </div>
+          <div class="tutorial-step">
+            <span class="step-num">3</span>
+            <p>Tempel API Key di bawah ini untuk melewati blokir keamanan BI.</p>
+          </div>
+        </div>
+
+        <div class="form-group mt-6">
+          <label class="form-label">API Key ScraperAPI</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔑</span>
+            <input type="password" id="input-proxy-key" placeholder="Masukkan API Key Anda...">
+          </div>
+          <p class="form-help">Kosongkan untuk tetap menggunakan mode simulasi.</p>
+        </div>
+
+        <div class="modal-actions mt-8">
+          <button id="btn-save-settings" class="btn-emerald w-full">Simpan & Hubungkan</button>
+          <button id="btn-cancel-settings" class="btn-ghost w-full">Batal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <nav class="mobile-bottom-nav">
     <a href="#" class="nav-item active" data-target="dashboardContent">
       <div class="nav-icon">📊</div>
