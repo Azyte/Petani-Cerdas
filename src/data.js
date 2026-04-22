@@ -187,7 +187,7 @@ export async function submitMarketplaceListing(listing) {
       commodity_id: cId, 
       province_id: pId,
       reported_price: listing.price,
-      buyer_type: 'hpp_produsen', // Valid constraint value
+      buyer_type: 'lainnya', // Menggunakan nilai yang diizinkan oleh constraint
       reporter_name: listing.contact,
       notes: JSON.stringify({
         isB2B: true,
