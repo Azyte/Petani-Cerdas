@@ -8,7 +8,10 @@ import { getCurrentLang, setLang, t, getLanguages, getAILanguageInstruction } fr
 // Initialize PWA Service Worker
 const updateSW = registerSW({
   onNeedRefresh() {
-    console.log('Update available. Please refresh.');
+    console.log('Update available. Refreshing automatically...');
+    if (confirm('Pembaruan baru tersedia! Klik OK untuk memuat ulang aplikasi.')) {
+      window.location.reload(true);
+    }
   },
   onOfflineReady() {
     console.log('App ready to work offline.');
