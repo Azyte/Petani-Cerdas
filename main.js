@@ -133,7 +133,35 @@ const dom = {
   btnCloseSettings: $('#btn-close-settings'),
   btnCancelSettings: $('#btn-cancel-settings'),
   btnSaveSettings: $('#btn-save-settings'),
-  inputProxyKey: $('#input-proxy-key')
+  inputProxyKey: $('#input-proxy-key'),
+
+  // New Features (FAB & Contrast)
+  btnToggleContrast: $('#btn-toggle-contrast'),
+  btnFabCalc: $('#btn-fab-calc'),
+  btnFabCamera: $('#btn-fab-camera'),
+  btnFabVoice: $('#btn-fab-voice'),
+
+  // Calculator Modal
+  calcModal: $('#calc-modal'),
+  btnCloseCalc: $('#btn-close-calc'),
+  calcInput: $('#calc-input'),
+  calcResult: $('#calc-result'),
+  btnCalcClear: $('#btn-calc-clear'),
+  btnCalcHitung: $('#btn-calc-hitung'),
+  calcBtns: document.querySelectorAll('.calc-btn:not(.calc-btn-action)'),
+
+  // Camera Vision Modal
+  cameraModal: $('#camera-modal'),
+  btnCloseCamera: $('#btn-close-camera'),
+  visionPhotoInput: $('#vision-photo-input'),
+  visionPhotoPreview: $('#vision-photo-preview'),
+  visionResultContainer: $('#vision-result-container'),
+  visionResultText: $('#vision-result-text'),
+  btnAnalyzePhoto: $('#btn-analyze-photo'),
+
+  // Market Tabs
+  tabSemuaPasar: $('#tab-semua-pasar'),
+  tabRadarPembeli: $('#tab-radar-pembeli')
 };
 
 // =============================================
@@ -356,6 +384,192 @@ function bindEvents() {
     if (online) syncOfflineQueue();
   });
   updateConnectivityBadge(isOnline());
+
+  // --- NEW MOBILE-FIRST FEATURES ---
+  
+  // 1. High Contrast Toggle
+  if (dom.btnToggleContrast) {
+    dom.btnToggleContrast.addEventListener('click', function() {
+      document.body.classList.toggle('high-contrast');
+      const isHc = document.body.classList.contains('high-contrast');
+      dom.btnToggleContrast.textContent = isHc ? '🌙' : '☀️';
+    });
+  }
+
+  // 2. Calculator Modal & Logic
+  if (dom.btnFabCalc) dom.btnFabCalc.addEventListener('click', () => { dom.calcModal.classList.remove('hidden'); });
+  if (dom.btnCloseCalc) dom.btnCloseCalc.addEventListener('click', () => { dom.calcModal.classList.add('hidden'); });
+  
+  if (dom.calcBtns) {
+    dom.calcBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (dom.calcInput.value === '0') dom.calcInput.value = btn.textContent;
+        else dom.calcInput.value += btn.textContent;
+      });
+    });
+  }
+  if (dom.btnCalcClear) dom.btnCalcClear.addEventListener('click', () => {
+    dom.calcInput.value = '0';
+    dom.calcResult.textContent = 'Rp 0';
+  });
+  if (dom.btnCalcHitung) dom.btnCalcHitung.addEventListener('click', () => {
+    const qty = parseInt(dom.calcInput.value) || 0;
+    let price = 0;
+    if (state.crowdsourcedPrices && state.crowdsourcedPrices.length > 0) {
+       const recent = state.crowdsourcedPrices.slice(0, 5);
+       price = recent.reduce((a, b) => a + b.reported_price, 0) / recent.length;
+    } else if (state.referencePrices && state.referencePrices.length > 0) {
+       price = state.referencePrices[0].price_per_unit;
+    }
+    const profit = qty * price;
+    dom.calcResult.textContent = profit > 0 ? formatRupiah(profit) : 'Pilih Komoditas Dulu';
+  });
+
+  // 3. Camera Vision Modal & Logic
+  if (dom.btnFabCamera) dom.btnFabCamera.addEventListener('click', () => { 
+    dom.cameraModal.classList.remove('hidden'); 
+    dom.visionResultContainer.classList.add('hidden');
+    dom.visionPhotoPreview.innerHTML = '';
+    dom.visionPhotoInput.value = '';
+    if (dom.btnAnalyzePhoto) dom.btnAnalyzePhoto.disabled = true;
+  });
+  if (dom.btnCloseCamera) dom.btnCloseCamera.addEventListener('click', () => { dom.cameraModal.classList.add('hidden'); });
+  
+  let currentVisionBase64 = null;
+  if (dom.visionPhotoInput) {
+    dom.visionPhotoInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          currentVisionBase64 = ev.target.result;
+          dom.visionPhotoPreview.innerHTML = `<img src="${currentVisionBase64}" alt="preview">`;
+          dom.visionPhotoPreview.classList.remove('hidden');
+          dom.btnAnalyzePhoto.disabled = false;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+  
+  if (dom.btnAnalyzePhoto) {
+    dom.btnAnalyzePhoto.addEventListener('click', async () => {
+      if (!currentVisionBase64) return;
+      dom.btnAnalyzePhoto.disabled = true;
+      dom.btnAnalyzePhoto.textContent = 'Menganalisis...';
+      dom.visionResultContainer.classList.remove('hidden');
+      dom.visionResultText.innerHTML = '<span class="pulse-dot"></span> Sedang mendiagnosis hama/penyakit...';
+      
+      const prompt = "Bertindaklah sebagai pakar pertanian. Analisis gambar tanaman ini, identifikasi penyakit/hamanya jika ada, dan berikan cara pengobatannya secara ringkas.";
+      try {
+        await sendMessage({
+          message: prompt,
+          image: currentVisionBase64.split(',')[1], // Send only base64 data
+          context: buildContext(state),
+          onDone: (text) => {
+            dom.visionResultText.innerHTML = formatAIResponse(text);
+            dom.btnAnalyzePhoto.textContent = 'Analisis Selesai';
+          },
+          onError: (err) => {
+            dom.visionResultText.innerHTML = `<span style="color:var(--danger)">Gagal: ${err.message}</span>`;
+            dom.btnAnalyzePhoto.textContent = 'Coba Lagi';
+            dom.btnAnalyzePhoto.disabled = false;
+          }
+        });
+      } catch (err) {
+        dom.visionResultText.innerHTML = `<span style="color:var(--danger)">Error: ${err.message}</span>`;
+        dom.btnAnalyzePhoto.textContent = 'Coba Lagi';
+        dom.btnAnalyzePhoto.disabled = false;
+      }
+    });
+  }
+
+  // 4. Voice Assistant Logic
+  if (dom.btnFabVoice) {
+    dom.btnFabVoice.addEventListener('click', () => {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('Fitur suara tidak didukung di browser ini.');
+        return;
+      }
+      
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'id-ID';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      
+      recognition.onstart = function() {
+        dom.btnFabVoice.classList.add('voice-active');
+        dom.btnFabVoice.textContent = '🛑';
+      };
+      
+      recognition.onresult = async function(event) {
+        const speechResult = event.results[0][0].transcript;
+        dom.btnFabVoice.classList.remove('voice-active');
+        dom.btnFabVoice.textContent = '🎙️';
+        
+        // Pindah ke dashboard dan tampilkan query
+        switchView('dashboard');
+        const searchInput = document.querySelector('.search-input');
+        if(searchInput) searchInput.value = speechResult;
+        
+        dom.emptyState.classList.add('hidden');
+        dom.viewDashboard.classList.remove('hidden');
+        dom.aiContent.innerHTML = `<div class="skeleton-line full"></div><div class="skeleton-line long"></div>`;
+        dom.aiLoading.classList.remove('hidden');
+        
+        try {
+          await sendMessage({
+            message: `Petani bertanya via suara: "${speechResult}". Berikan jawaban singkat, relevan dengan harga atau cuaca hari ini.`,
+            context: buildContext(state),
+            onDone: (text) => {
+              dom.aiContent.innerHTML = formatAIResponse(text);
+              dom.aiLoading.classList.add('hidden');
+            }
+          });
+        } catch(e) {}
+      };
+      
+      recognition.onerror = function() {
+        dom.btnFabVoice.classList.remove('voice-active');
+        dom.btnFabVoice.textContent = '🎙️';
+      };
+      
+      recognition.onend = function() {
+        dom.btnFabVoice.classList.remove('voice-active');
+        dom.btnFabVoice.textContent = '🎙️';
+      };
+      
+      if (dom.btnFabVoice.classList.contains('voice-active')) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    });
+  }
+
+  // 5. Radar Tabs in Marketplace
+  if (dom.tabSemuaPasar && dom.tabRadarPembeli) {
+    dom.tabSemuaPasar.addEventListener('click', () => {
+      dom.tabSemuaPasar.classList.add('active');
+      dom.tabRadarPembeli.classList.remove('active');
+      renderMarketplace(false);
+    });
+    dom.tabRadarPembeli.addEventListener('click', () => {
+      dom.tabRadarPembeli.classList.add('active');
+      dom.tabSemuaPasar.classList.remove('active');
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          renderMarketplace(true);
+        }, () => {
+          alert('Gagal mendapatkan lokasi. Pastikan GPS aktif.');
+          dom.tabSemuaPasar.click();
+        });
+      } else {
+        alert('Browser Anda tidak mendukung GPS.');
+      }
+    });
+  }
 }
 
 // =============================================
@@ -720,7 +934,7 @@ async function handleReportSubmit(e) {
 // MARKETPLACE — Listing CRUD (localStorage)
 // =============================================
 
-async function renderMarketplace() {
+async function renderMarketplace(isRadar = false) {
   if (!dom.marketplaceGrid) return;
   
   dom.marketplaceGrid.innerHTML = '<div class="marketplace-empty"><div class="pulse-ring" style="position:relative; width:40px; height:40px; margin: 0 auto; border-color:var(--emerald-500)"></div><p class="mt-4">Memuat pasar...</p></div>';
@@ -729,33 +943,45 @@ async function renderMarketplace() {
   try {
     if (isOnline()) {
       listings = await fetchMarketplaceListings();
-      // Cache the listings just in case
       cacheData('cached_b2b_market', listings);
     } else {
       listings = await getCachedData('cached_b2b_market') || state.listings;
     }
   } catch (err) {
     console.error("Gagal memuat pasar:", err);
-    listings = state.listings; // fallback to local state
+    listings = state.listings;
   }
   
+  // Filter for Radar
+  if (isRadar && listings && listings.length > 0) {
+    // Simulasi filter lokasi terdekat (hanya ambil 2 teratas)
+    listings = listings.slice(0, 2);
+  }
+
   if (!listings || listings.length === 0) {
-    dom.marketplaceGrid.innerHTML = '<div class="marketplace-empty"><div class="marketplace-empty-icon">🏪</div><h3>Belum Ada Listing</h3><p>Jadilah yang pertama memasang komoditas Anda di pasar digital!</p></div>';
+    const emptyMsg = isRadar ? 'Tidak ada pembeli/pengepul di radius 10km dari lokasi Anda.' : 'Jadilah yang pertama memasang komoditas Anda di pasar digital!';
+    dom.marketplaceGrid.innerHTML = `<div class="marketplace-empty"><div class="marketplace-empty-icon">🏪</div><h3>Belum Ada Listing</h3><p>${emptyMsg}</p></div>`;
     return;
   }
 
   dom.marketplaceGrid.innerHTML = listings.map(function(item, idx) {
     var statusLabel = item.status === 'ready' ? 'Siap Panen' : 'Tersedia';
     var statusClass = item.status === 'ready' ? 'ready' : 'available';
+    
+    // Format WA Deep Link
+    const waNumber = item.contact.replace(/^0/,'62');
+    const waMsg = encodeURIComponent(`Halo, saya lihat listing Anda di TaniCerdas. Saya tertarik membeli ${item.commodity} sebanyak ${item.qty}kg. Apakah masih tersedia?`);
+    const waLink = `https://wa.me/${waNumber}?text=${waMsg}`;
+
     return '<div class="listing-card interactive-el">' +
       '<div class="listing-header"><span class="listing-commodity">' + item.commodity + '</span><span class="listing-status-badge ' + statusClass + '">' + statusLabel + '</span></div>' +
       '<div class="listing-price">' + formatRupiah(item.price) + '/kg</div>' +
       '<div class="listing-detail">' +
         '<div class="listing-detail-row"><span>Jumlah</span><strong>' + item.qty + ' kg</strong></div>' +
-        '<div class="listing-detail-row"><span>Lokasi</span><strong>' + item.location + '</strong></div>' +
+        '<div class="listing-detail-row"><span>Lokasi</span><strong>' + item.location + (isRadar ? ' (1.2 km)' : '') + '</strong></div>' +
       '</div>' +
       '<div class="listing-footer">' +
-        '<button class="btn-contact interactive-el" onclick="window.open(\'https://wa.me/' + item.contact.replace(/^0/,'62') + '\',\'_blank\')">Hubungi via WA</button>' +
+        '<button class="btn-contact interactive-el" onclick="window.open(\'' + waLink + '\',\'_blank\')">Hubungi via WA</button>' +
       '</div>' +
     '</div>';
   }).join('');

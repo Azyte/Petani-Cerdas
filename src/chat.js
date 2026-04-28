@@ -10,11 +10,12 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase.js';
  * @param {Object} params - Chat parameters
  * @param {string} params.message - User's message
  * @param {Object} params.context - Contextual data (region, commodity, prices)
+ * @param {string} params.image - Base64 encoded image (optional)
  * @param {Function} params.onChunk - Callback for each text chunk
  * @param {Function} params.onDone - Callback when stream is complete
  * @param {Function} params.onError - Callback on error
  */
-export async function sendMessage({ message, context, onChunk, onDone, onError }) {
+export async function sendMessage({ message, context, image, onChunk, onDone, onError }) {
   const maxRetries = 3;
   let attempt = 0;
   let response;
@@ -29,7 +30,7 @@ export async function sendMessage({ message, context, onChunk, onDone, onError }
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({ message, context })
+          body: JSON.stringify({ message, context, image })
         });
 
         if (!response.ok) {

@@ -101,6 +101,10 @@
           <option value="bug">BUG</option>
         </select>
 
+        <button id="btn-toggle-contrast" class="nav-icon-btn desktop-only" title="High Contrast Mode">
+          ☀️
+        </button>
+
         <button id="btn-open-settings" class="nav-icon-btn" title="Pengaturan">
           ⚙️
         </button>
@@ -280,6 +284,12 @@
               <div><h2 class="view-title">🏪 Pasar Komoditas</h2><p class="view-subtitle" data-i18n="market_subtitle">Jual langsung ke pengepul dan restoran tanpa perantara</p></div>
               <button class="btn-emerald" id="btn-add-listing">+ Pasang Listing</button>
             </div>
+            
+            <div class="market-tabs">
+                <div class="market-tab active" id="tab-semua-pasar">Semua Pasar</div>
+                <div class="market-tab" id="tab-radar-pembeli">Radar Terdekat 📍</div>
+            </div>
+
             <div class="marketplace-grid" id="marketplace-grid"><!-- Populated by JS --></div>
           </div>
 
@@ -449,6 +459,84 @@
           <button id="btn-save-settings" class="btn-emerald w-full" style="padding: 1rem;">Simpan & Hubungkan</button>
           <button id="btn-cancel-settings" class="btn-ghost w-full" style="padding: 1rem; border: none; color: var(--slate-400);">Batal</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Action Buttons -->
+  <div class="fab-container">
+      <button class="fab-btn interactive-el" id="btn-fab-calc" title="Kalkulator Profit">
+          🔢
+      </button>
+      <button class="fab-btn interactive-el" id="btn-fab-camera" title="Diagnosis Tanaman">
+          📷
+      </button>
+      <button class="fab-btn interactive-el" id="btn-fab-voice" title="Voice Assistant">
+          🎙️
+      </button>
+  </div>
+
+  <!-- Calculator Modal -->
+  <div id="calc-modal" class="premium-modal-wrapper hidden">
+    <div class="premium-modal" style="max-width: 400px; background: var(--slate-50)">
+      <div class="modal-header-v2">
+          <h3>🔢 Kalkulator Panen</h3>
+          <button type="button" class="btn-close-v2" id="btn-close-calc">✕</button>
+      </div>
+      <div class="modal-body-v2">
+          <div class="calc-display">
+              <div class="calc-display-label">Estimasi Profit (Berdasarkan Harga Pasar)</div>
+              <div class="calc-display-value" id="calc-result">Rp 0</div>
+          </div>
+          <div class="input-group">
+              <label>Berat Panen (kg)</label>
+              <input type="text" id="calc-input" value="0" readonly style="font-size: 1.5rem; text-align: right; background: white; border-color: var(--emerald-200);">
+          </div>
+          <div class="calc-grid">
+              <button class="calc-btn">1</button>
+              <button class="calc-btn">2</button>
+              <button class="calc-btn">3</button>
+              <button class="calc-btn">4</button>
+              <button class="calc-btn">5</button>
+              <button class="calc-btn">6</button>
+              <button class="calc-btn">7</button>
+              <button class="calc-btn">8</button>
+              <button class="calc-btn">9</button>
+              <button class="calc-btn calc-btn-action" id="btn-calc-clear">C</button>
+              <button class="calc-btn">0</button>
+              <button class="calc-btn calc-btn-action" id="btn-calc-hitung">=</button>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera Vision Modal -->
+  <div id="camera-modal" class="premium-modal-wrapper hidden">
+    <div class="premium-modal">
+      <div class="modal-header-v2">
+          <h3>📷 Diagnosis Penyakit</h3>
+          <button type="button" class="btn-close-v2" id="btn-close-camera">✕</button>
+      </div>
+      <div class="modal-body-v2">
+          <p class="modal-instruction">Foto daun atau tanaman yang bermasalah. AI Gemini akan menganalisis hama/penyakitnya secara instan.</p>
+          <div class="input-group mb-5">
+            <input type="file" id="vision-photo-input" accept="image/*" capture="environment" class="file-input">
+            <div id="vision-photo-preview" class="photo-preview hidden"></div>
+          </div>
+          
+          <div id="vision-result-container" class="hidden">
+            <div class="ai-header-left mb-2">
+                <div class="ai-logo-box">🤖</div>
+                <h4 style="margin: 0; font-family: var(--font-display);">Hasil Diagnosis</h4>
+            </div>
+            <div id="vision-result-text" style="font-size: 0.9rem; line-height: 1.5; color: var(--slate-700); padding: 1rem; background: var(--emerald-50); border-radius: 12px; border: 1px solid var(--emerald-100);">
+                <!-- Result here -->
+            </div>
+          </div>
+
+          <div class="form-actions-v2 mt-4">
+            <button type="button" class="btn-emerald w-full" id="btn-analyze-photo" disabled>Analisis Foto Sekarang</button>
+          </div>
       </div>
     </div>
   </div>
