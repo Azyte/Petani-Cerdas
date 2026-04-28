@@ -415,84 +415,250 @@ span.ripple {
     #layout-menu { display: none; }
     .layout-page { margin-left: 0; width: 100%; background: var(--slate-50); }
     
-    /* Navbar Mobile */
-    .glass-navbar { padding: 0.8rem 1rem; border-bottom: none; background: rgba(255,255,255,0.9); box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+    /* --- NAVBAR MOBILE: Clean & Compact --- */
+    .glass-navbar {
+        padding: 0.6rem 1rem;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+        border-bottom: none;
+    }
+    .navbar-content { flex-wrap: nowrap; gap: 0.5rem; }
     .search-wrap { display: none; }
     .user-role { display: none; }
-    .user-name { font-size: 0.9rem; }
-    .brand-text { display: inline-block !important; font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; color: var(--slate-900); }
-    
-    /* Header Bar override on mobile */
-    .navbar-right { width: 100%; justify-content: space-between; }
-    .navbar-left-mobile { display: flex; align-items: center; gap: 0.5rem; }
+    .user-name { font-size: 0.8rem; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-avatar { width: 32px; height: 32px; padding: 0; }
+    .user-avatar img { width: 32px; height: 32px; border-radius: 50%; }
+    .user-info { gap: 0.4rem; }
+    .navbar-right { width: 100%; justify-content: flex-end; gap: 0.4rem; flex-wrap: nowrap; }
+    .connectivity-badge { font-size: 0.65rem; padding: 0.2rem 0.5rem; }
+    .lang-picker { font-size: 0.7rem; padding: 0.25rem 0.35rem; max-width: 42px; }
+    .nav-icon-btn { width: 34px; height: 34px; font-size: 1rem; border-radius: 10px; }
 
-    /* Command Center - Swipeable/Compact */
-    .command-center { padding: 1rem; border-radius: 20px; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.04); margin-top: 0.5rem; }
-    .command-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    .input-group.highlight-group { grid-column: 1 / -1; } /* Make commodity take full width */
-    .btn-group { grid-column: 1 / -1; }
-    .input-group label { font-size: 0.65rem; margin-bottom: 0.3rem; }
-    .custom-select { padding: 0.8rem 1rem; border-radius: 12px; font-size: 0.9rem; }
-    .btn-emerald { padding: 0.8rem; border-radius: 12px; font-size: 0.95rem; }
-    
-    /* Hero */
-    .hero-premium-card { padding: 1.5rem; border-radius: 24px; box-shadow: 0 10px 30px rgba(5, 150, 105, 0.2); margin-top: 0.5rem; overflow: visible; }
+    /* --- COMMAND CENTER: Stacked for readability --- */
+    .command-center {
+        padding: 1rem;
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        margin-bottom: 1rem;
+    }
+    .command-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+    .input-group { min-width: unset; flex: none; width: 100%; }
+    .input-group label { font-size: 0.65rem; margin-bottom: 0.25rem; }
+    .custom-select { padding: 0.7rem 0.9rem; border-radius: 10px; font-size: 0.85rem; }
+    .btn-group { flex: none; }
+    .btn-emerald { width: 100%; padding: 0.75rem; border-radius: 12px; font-size: 0.9rem; }
+
+    /* --- HERO: Full-width, tighter --- */
+    .dashboard-top-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .dashboard-bottom-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .hero-premium-card {
+        padding: 1.25rem 1rem;
+        border-radius: 18px;
+        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.15);
+        margin-top: 0;
+    }
     .hero-content { max-width: 100%; }
-    .hero-title { font-size: 1.6rem; margin-top: 0.2rem; }
-    .hero-desc { font-size: 0.85rem; line-height: 1.5; opacity: 0.95; }
-    .hero-mascot { font-size: 4rem; right: -0.5rem; bottom: -1rem; opacity: 0.2; transform: rotate(-15deg); }
-    .btn-white-glass { padding: 0.8rem 1.5rem; border-radius: 14px; width: 100%; text-align: center; font-size: 0.9rem; }
-    
-    /* Stats Swipeable */
-    .stats-premium-grid { 
-        display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; margin-top: 0.5rem;
-        scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+    .hero-badge { font-size: 0.6rem; padding: 0.2rem 0.6rem; margin-bottom: 0.5rem; }
+    .hero-title { font-size: 1.35rem; margin-top: 0; margin-bottom: 0.4rem; }
+    .hero-desc { font-size: 0.78rem; line-height: 1.45; margin-bottom: 0.8rem; }
+    .hero-mascot { font-size: 3.5rem; right: 0.25rem; bottom: -0.5rem; opacity: 0.15; }
+    .btn-white-glass { padding: 0.6rem 1rem; border-radius: 10px; width: 100%; text-align: center; font-size: 0.8rem; }
+
+    /* --- STATS: Horizontal scroll snap --- */
+    .stats-premium-grid {
+        display: flex;
+        gap: 0.75rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
     }
     .stats-premium-grid::-webkit-scrollbar { display: none; }
-    .stat-card { 
-        min-width: 85%; scroll-snap-align: center;
-        padding: 1.25rem; flex-direction: row; align-items: center; justify-content: flex-start; gap: 1rem; text-align: left; border-radius: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+    .stat-card {
+        min-width: 75%;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+        padding: 1rem;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        text-align: left;
+        border-radius: 14px;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
-    .stat-icon-wrap { margin-bottom: 0; flex-shrink: 0; width: 48px; height: 48px; border-radius: 14px; font-size: 1.5rem; }
-    .stat-number { font-size: 1.4rem; margin: 0; }
-    
-    /* AI & Reports */
-    .ai-premium-card, .reports-premium-card { border-radius: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 1rem; }
-    .ai-header, .ai-body { padding: 1.25rem; }
-    .reports-header { padding: 1.25rem; flex-direction: row; gap: 0.5rem; align-items: center; justify-content: space-between; }
-    .reports-title { font-size: 1rem; }
-    .btn-subtle { padding: 0.6rem; border-radius: 12px; font-size: 0.75rem; }
-    .report-item { padding: 1rem; flex-direction: column; align-items: flex-start; gap: 0.5rem; border-bottom: 1px solid var(--slate-50); }
-    .ri-price { align-self: flex-start; font-size: 1rem; padding: 0.3rem 0.6rem; border-radius: 8px; }
-    
-    /* Empty State */
-    .empty-state { padding: 3rem 1.5rem; }
-    .empty-title { font-size: 1.3rem; }
-    .empty-desc { font-size: 0.9rem; }
-    
-    /* Modals */
-    .premium-modal { border-radius: 24px 24px 0 0; position: absolute; bottom: 0; animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .stat-icon-wrap { margin-bottom: 0; flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; }
+    .stat-number { font-size: 1.2rem; margin: 0; }
+    .stat-label { font-size: 0.7rem; }
+    .stat-footer { font-size: 0.65rem; }
+
+    /* --- AI & REPORTS: Stack nicely --- */
+    .ai-premium-card, .reports-premium-card {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        margin-bottom: 0.75rem;
+    }
+    .ai-header { padding: 1rem; }
+    .ai-body { padding: 1rem; font-size: 0.85rem; line-height: 1.6; }
+    .ai-header-title { font-size: 1rem; }
+    .ai-logo-box { width: 30px; height: 30px; border-radius: 8px; font-size: 1rem; }
+    .reports-header { padding: 1rem; flex-direction: row; gap: 0.5rem; align-items: center; justify-content: space-between; }
+    .reports-title { font-size: 0.95rem; }
+    .btn-subtle { padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.7rem; }
+    .report-item { padding: 0.85rem 1rem; flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+    .ri-title { font-size: 0.85rem; }
+    .ri-sub { font-size: 0.7rem; }
+    .ri-price { font-size: 0.9rem; padding: 0.2rem 0.5rem; border-radius: 6px; }
+    .reports-body { max-height: 300px; }
+
+    /* --- EMPTY STATE --- */
+    .empty-state { padding: 2.5rem 1.25rem; }
+    .empty-icon-pulse { width: 70px; height: 70px; font-size: 2rem; margin-bottom: 1.25rem; }
+    .empty-title { font-size: 1.15rem; }
+    .empty-desc { font-size: 0.8rem; line-height: 1.5; }
+
+    /* --- VIEW HEADERS --- */
+    .view-title { font-size: 1.2rem; }
+    .view-subtitle { font-size: 0.78rem; margin-bottom: 1rem; }
+    .view-header-bar { flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+    .view-header-bar .btn-emerald { width: 100%; }
+
+    /* --- MARKETPLACE --- */
+    .marketplace-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+    .listing-card { padding: 1rem; border-radius: 14px; }
+    .listing-commodity { font-size: 1rem; }
+    .listing-price { font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .listing-detail-row { font-size: 0.8rem; }
+    .btn-contact { padding: 0.65rem; border-radius: 10px; font-size: 0.85rem; }
+    .marketplace-empty { padding: 2rem 1rem; }
+    .marketplace-empty-icon { font-size: 2.5rem; }
+    .market-tabs { gap: 0; }
+    .market-tab { flex: 1; text-align: center; padding: 0.6rem 0.5rem; font-size: 0.8rem; }
+
+    /* --- COMMUNITY --- */
+    .leaderboard-card { padding: 1rem; }
+    .leaderboard-item { padding: 0.7rem 0.5rem; gap: 0.6rem; }
+    .lb-rank { font-size: 1rem; min-width: 1.5rem; }
+    .lb-avatar { width: 36px; height: 36px; border-radius: 10px; font-size: 1.1rem; }
+    .lb-name { font-size: 0.85rem; }
+    .lb-stats { font-size: 0.7rem; }
+
+    /* --- REWARDS --- */
+    .rewards-profile-card { flex-wrap: wrap; gap: 1rem; padding: 1.25rem; }
+    .rewards-avatar { font-size: 2.5rem; }
+    .rewards-info h3 { font-size: 1rem; color: white; }
+    .rewards-points-box { padding: 0.75rem 1rem; }
+    .points-number { font-size: 1.5rem; }
+    .achievements-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .achievement-card { padding: 0.9rem; border-radius: 12px; }
+    .achievement-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .achievement-name { font-size: 0.72rem; }
+    .achievement-desc { font-size: 0.65rem; }
+
+    /* --- MODALS: Bottom sheet style --- */
     .premium-modal-wrapper { align-items: flex-end; padding: 0; z-index: 9999; }
-    .modal-header-v2 { padding: 1.25rem 1.5rem 1rem; }
-    .modal-body-v2 { padding: 0 1.5rem 2rem; max-height: 80vh; overflow-y: auto; }
-    .input-with-icon input { padding: 0.9rem 1rem 0.9rem 2.5rem; border-radius: 12px; }
-    
-    /* Layout padding */
-    .content-wrapper { padding: 0.75rem 1rem 7rem 1rem; } /* Extra bottom padding for floating nav */
-    
-    /* Premium Floating Bottom Navigation */
-    .mobile-bottom-nav { 
-        display: flex; position: fixed; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
-        width: 92%; max-width: 400px; border-radius: 24px;
-        background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        padding: 0.5rem 0; z-index: 1000;
+    .premium-modal {
+        border-radius: 20px 20px 0 0;
+        max-height: 92vh;
+        width: 100%;
+        max-width: 100%;
+        animation: slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .mobile-bottom-nav .nav-item { padding: 0.5rem 0.25rem; font-size: 0.65rem; }
-    .mobile-bottom-nav .nav-icon { font-size: 1.25rem; margin-bottom: 0.15rem; }
-    
-    /* Hide some elements on mobile to declutter */
+    .modal-header-v2 { padding: 1rem 1.25rem 0.75rem; }
+    .modal-header-v2 h3 { font-size: 1.05rem; }
+    .modal-body-v2 { padding: 0.5rem 1.25rem 1.5rem; max-height: 75vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .modal-instruction { font-size: 0.78rem; margin-bottom: 1rem; }
+    .form-actions-v2 { flex-direction: column; gap: 0.5rem; }
+    .form-actions-v2 .btn-emerald { width: 100%; }
+    .form-actions-v2 .btn-ghost { width: 100%; text-align: center; }
+    .input-with-icon input { padding: 0.8rem 1rem 0.8rem 2.5rem; border-radius: 10px; font-size: 0.9rem; }
+
+    /* Settings modal */
+    .modal { padding: 0; align-items: flex-end; }
+    .modal-content-v2 { border-radius: 20px 20px 0 0; max-height: 90vh; }
+    .tutorial-box { padding: 1rem; margin-bottom: 1rem; }
+    .tutorial-step { font-size: 0.8rem; gap: 0.75rem; }
+
+    /* --- WEATHER --- */
+    .weather-widget { padding: 1rem; border-radius: 14px; gap: 0.5rem; }
+    .weather-value { font-size: 1.1rem; }
+    .weather-label { font-size: 0.65rem; }
+
+    /* --- TREND CHART --- */
+    .view-trend .ai-premium-card { padding: 1rem !important; border-radius: 16px; }
+    .view-trend .ai-header-title { font-size: 0.9rem; }
+    .view-trend div[style*="height:400px"] { height: 250px !important; }
+
+    /* --- LAYOUT: Bottom padding for nav + FAB bar + safe area --- */
+    .content-wrapper { padding: 0.5rem 0.75rem 7.5rem 0.75rem; }
+
+    /* --- FLOATING BOTTOM NAV --- */
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        border-radius: 0;
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 -2px 20px rgba(0,0,0,0.06);
+        padding: 0.25rem 0 calc(0.25rem + env(safe-area-inset-bottom));
+        z-index: 1000;
+    }
+    .mobile-bottom-nav .nav-item {
+        padding: 0.45rem 0;
+        font-size: 0.6rem;
+        gap: 0.1rem;
+    }
+    .mobile-bottom-nav .nav-icon { font-size: 1.2rem; margin-bottom: 0.1rem; }
+
+    /* --- FAB: Compact horizontal pill at bottom-right, above nav --- */
+    .fab-container {
+        display: flex;
+        bottom: 3.5rem;
+        right: 0.75rem;
+        left: auto;
+        transform: none;
+        flex-direction: row;
+        gap: 0.5rem;
+        padding: 0.35rem;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        border-radius: 50px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+    .fab-btn { width: 38px; height: 38px; font-size: 1rem; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2); }
+
+    /* --- MISC --- */
     .desktop-only { display: none !important; }
+    .section-title { font-size: 0.95rem; }
+    .verdict-badge { font-size: 0.75rem; padding: 0.35rem 0.75rem; }
+}
+
+/* === EXTRA SMALL DEVICES (320px-374px) === */
+@media (max-width: 374px) {
+    .hero-title { font-size: 1.15rem; }
+    .hero-desc { font-size: 0.72rem; }
+    .stat-card { min-width: 85%; }
+    .command-center { padding: 0.75rem; }
+    .custom-select { font-size: 0.8rem; padding: 0.65rem 0.8rem; }
+    .nav-icon-btn { width: 30px; height: 30px; font-size: 0.85rem; }
+    .connectivity-badge { display: none; }
+    .calc-btn { padding: 1rem 0; font-size: 1.25rem; }
+    .calc-display-value { font-size: 1.5rem; }
+    .fab-btn { width: 42px; height: 42px; font-size: 1.1rem; }
+    .achievements-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* =============================================
@@ -784,25 +950,24 @@ span.ripple {
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
-@media (max-width: 480px) {
-    .modal-content-v2 { border-radius: 24px 24px 0 0; position: fixed; bottom: 0; }
-    .modal-body-v2 { padding: 1.5rem; padding-bottom: 2.5rem; }
-}
+/* Small modal overrides handled in 768px breakpoint above */
 
 /* =============================================
    MOBILE-FIRST NEW FEATURES
    ============================================= */
 
-/* Floating Action Buttons (FAB) */
+/* Floating Action Buttons (FAB) — hidden on desktop, shown via mobile media query */
 .fab-container {
+    display: none;
     position: fixed;
-    bottom: 6rem; /* Above floating nav */
+    bottom: 6rem;
     right: 1.5rem;
-    display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
     z-index: 900;
 }
+
+/* FAB mobile activation is handled inside the main @media (max-width: 768px) block above */
 
 .fab-btn {
     width: 56px;
